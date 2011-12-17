@@ -9,9 +9,12 @@
  * This program is free software - see README for details.
  */
 
+//-------------------------------------------------------------------------------
+// main constants
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
 
+//-------------------------------------------------------------------------------
 // log
 const MAX_LOG_LINES = 32;
 function log(msg)
@@ -46,6 +49,7 @@ function log(msg)
     }
 }
 
+//-------------------------------------------------------------------------------
 // main init
 var g_context;
 function init()
@@ -59,6 +63,10 @@ function init()
         log("ERROR: missing canvas");
         return;
     }
+
+    // set its size
+    canvasElement.width = CANVAS_WIDTH;
+    canvasElement.height = CANVAS_HEIGHT;
 
     // get canvas context
     g_context = canvasElement.getContext('2d');
@@ -80,6 +88,7 @@ function init()
     log("done");
 }
 
+//-------------------------------------------------------------------------------
 // main update
 const AIM_FPS = 60.0;
 const MIN_DT = 1000.0 / AIM_FPS;
@@ -110,18 +119,30 @@ function update()
     setTimeout('update()', MIN_DT);
 }
 
+//-------------------------------------------------------------------------------
 // game init
-var g_kitty;
+var g_kittyImg;
+var g_kittyfImg;
+var g_darknessImg;
 function gameInit()
 {
-    g_kitty = new Image();
-    g_kitty.src = "kitty.png";
-    g_kitty.onload = function() {};
+    g_kittyImg = new Image();
+    g_kittyImg.src = "kitty.png";
+    g_kittyImg.onload = function() {};
+
+    g_kittyfImg = new Image();
+    g_kittyfImg.src = "kittyf.png";
+    g_kittyfImg.onload = function() {};
+
+    g_darknessImg = new Image();
+    g_darknessImg.src = "darkness.png";
+    g_darknessImg.onload = function() {};
 
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 }
 
+//-------------------------------------------------------------------------------
 // inputs
 var g_ie = document.all ? true : false;	
 var g_leftPressed = false;
@@ -163,29 +184,36 @@ function keyUp(e)
     }
 }
 
+//-------------------------------------------------------------------------------
 // maths
 function lerp(t, a, b)
 {
     return a + t * (b -a);
 }
 
+//-------------------------------------------------------------------------------
 // game update
 const KITTY_SPEED = 5.0;
-const LIGHT_SMOOTH = 0.2;
-const LIGHT_SMOOTH2 = 0.2;
+const LIGHT_SMOOTH = 0.3;
+const LIGHT_SMOOTH2 = 0.3;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
+var g_kittyFlip = false;
 var g_lightX = CANVAS_WIDTH * 0.5;
 var g_lightY = CANVAS_HEIGHT * 0.5;
 var g_lightTargetX = CANVAS_WIDTH * 0.5;
 var g_lightTargetY = CANVAS_HEIGHT * 0.5;
 function gameUpdate()
 {
-    // apply inputs
+    // move kitty
     if (g_leftPressed) g_kittyX -= KITTY_SPEED;
     if (g_upPressed) g_kittyY -= KITTY_SPEED;
     if (g_rightPressed) g_kittyX += KITTY_SPEED;
     if (g_downPressed) g_kittyY += KITTY_SPEED;
+
+    // flip kitty
+    if (g_leftPressed && !g_rightPressed && !g_kittyFlip) g_kittyFlip = true;
+    if (g_rightPressed && !g_leftPressed && g_kittyFlip) g_kittyFlip = false;
 
     // move light with a bit of smoothing
     g_lightTargetX = lerp(LIGHT_SMOOTH, g_lightTargetX, g_kittyX);
@@ -197,11 +225,13 @@ function gameUpdate()
     //g_leftPressed = g_upPressed = g_rightPressed = g_downPressed = false;
 }
 
+//-------------------------------------------------------------------------------
 // game draw
 const LIGHT_RADIUS = 100;
 const LIGHT_BLITSIZE = LIGHT_RADIUS + 10; // a bit of extra width to hide previous draw
-const KITTY_WIDTH = 64;
-const KITTY_HEIGHT = 64;
+const SPRITELIGHT_CLEARSIZE = 118;
+const SPRITELIGHT_SIZE = 128;
+const KITTY_SIZE = 64;
 function gameDraw()
 {
     // clear canvas
@@ -209,7 +239,7 @@ function gameDraw()
     //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // draw radial light around kitty
-    var radGrad = g_context.createRadialGradient(
+    /*var radGrad = g_context.createRadialGradient(
         g_lightX, g_lightY, LIGHT_RADIUS * 0.8,
         g_lightX, g_lightY, LIGHT_RADIUS
     );
@@ -220,10 +250,27 @@ function gameDraw()
         g_lightX - LIGHT_BLITSIZE,
         g_lightY - LIGHT_BLITSIZE,
         LIGHT_BLITSIZE * 2,
-        LIGHT_BLITSIZE * 2);
+        LIGHT_BLITSIZE * 2);*/
+
+    // light v2 bottom clear
+    var lightClearX = g_lightX - SPRITELIGHT_CLEARSIZE * 0.5;
+    var lightClearY = g_lightY - SPRITELIGHT_CLEARSIZE * 0.5;
+    g_context.fillStyle = '#FFFFFF';
+    g_context.fillRect(
+        lightClearX, lightClearY,
+        SPRITELIGHT_CLEARSIZE, SPRITELIGHT_CLEARSIZE);
     
     // draw kitty
-    var kittyImgX = g_kittyX - KITTY_WIDTH * 0.5;
-    var kittyImgY = g_kittyY - KITTY_HEIGHT * 0.5;
-    g_context.drawImage(g_kitty, kittyImgX, kittyImgY);
+    var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
+    var kittyImgY = g_kittyY - KITTY_SIZE * 0.5;
+    g_context.drawImage(
+        g_kittyFlip ? g_kittyfImg : g_kittyImg,
+        kittyImgX, kittyImgY);
+
+    // light v2 darkness halo
+    var lightImgX = g_lightX - SPRITELIGHT_SIZE * 0.5;
+    var lightImgY = g_lightY - SPRITELIGHT_SIZE * 0.5;
+    g_context.drawImage(
+        g_darknessImg,
+        lightImgX, lightImgY);
 }
