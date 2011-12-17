@@ -10,7 +10,7 @@
  */
 
 // log
-const MAX_LOG_LINES = 16;
+const MAX_LOG_LINES = 4;
 function log(msg)
 {
     var begin = '<ul><li>';
@@ -87,6 +87,7 @@ function update()
     var fps = 1000.0 / dt;
    
     gameUpdate(dt);
+    gameDraw();
     
     // print FPS
     var fpsElement = document.getElementById("fps")
@@ -103,11 +104,86 @@ function update()
 }
 
 // game init
+var g_kitty;
 function gameInit()
 {
+    g_kitty = new Image();
+    g_kitty.src = "kitty.png";
+    g_kitty.onload = function() {};
+
+    document.onkeydown = keyDown;
+    document.onkeyup = keyUp;
+}
+
+// inputs
+var g_ie = document.all ? true : false;	
+var g_leftPressed = false;
+var g_upPressed = false;
+var g_rightPressed = false;
+var g_downPressed = false;
+function keyDown(e)
+{
+	var ev = null;
+	if (g_ie) ev = event;
+	else ev = e;
+    if (ev == null) return;
+    
+	log("key down: " + ev.keyCode);
+
+    switch ( ev.keyCode )
+    {
+    case 37: case 81: case 65: g_leftPressed = true; break;
+    case 38: case 90: case 87: g_upPressed = true; break;
+    case 39: case 68: g_rightPressed = true; break;
+    case 40: case 83: g_downPressed = true; break;
+    }
+}
+function keyUp(e)
+{
+	var ev = null;
+	if (g_ie) ev = event;
+	else ev = e;
+    if (ev == null) return;
+    
+	log("key up: " + ev.keyCode);
+
+    switch ( ev.keyCode )
+    {
+    case 37: case 81: case 65: g_leftPressed = false; break;
+    case 38: case 90: case 87: g_upPressed = false; break;
+    case 39: case 68: g_rightPressed = false; break;
+    case 40: case 83: g_downPressed = false; break;
+    }
 }
 
 // game update
+const CANVAS_WIDTH = 400;
+const CANVAS_HEIGHT = 300;
+var g_kittyX = CANVAS_WIDTH * 0.5;
+var g_kittyY = CANVAS_HEIGHT * 0.5;
 function gameUpdate()
 {
+    // apply inputs
+    if (g_leftPressed) --g_kittyX;
+    if (g_upPressed) --g_kittyY;
+    if (g_rightPressed) ++g_kittyX;
+    if (g_downPressed) ++g_kittyY;
+
+    // reset inputs
+    //g_leftPressed = g_upPressed = g_rightPressed = g_downPressed = false;
+}
+
+// game draw
+const KITTY_WIDTH = 64;
+const KITTY_HEIGHT = 64;
+function gameDraw()
+{
+    // clear canvas
+    g_context.fillStyle = "rgba(255,255,255,1.0)";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // draw kitty
+    var kittyImgX = g_kittyX - KITTY_WIDTH * 0.5;
+    var kittyImgY = g_kittyY - KITTY_HEIGHT * 0.5;
+    g_context.drawImage(g_kitty, kittyImgX, kittyImgY);
 }
