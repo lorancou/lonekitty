@@ -65,7 +65,7 @@ function init()
     var canvasElement = document.getElementById("canvas");
     if (!canvasElement)
     {
-        log("ERROR: missing canvas");
+        log("ERROR: missing canvas element");
         return;
     }
 
@@ -77,7 +77,7 @@ function init()
     g_context = canvasElement.getContext("2d");
     if (!g_context)
     {
-        log("ERROR: missing context");
+        log("ERROR: missing canvas context");
         return;
     }
 
@@ -85,12 +85,31 @@ function init()
     g_context.fillStyle = "#000000";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // init the intersting stuff
-    gameInit();
+    // inputs init
+    document.onkeydown = keyDown;
+    document.onkeyup = keyUp;
 
-    // plan first update
-    setTimeout("update()", 0.0);
+    // no doc for this Audio thing, how can I loop this??
+    /*g_music = new Audio();
+    g_music.src = "warmkitty.ogg";
+    g_music.load();
+    g_music.play();*/
+
+    // play music
+    var musicElement = document.getElementById("music");
+    if (!musicElement)
+    {
+        log("ERROR: missing music element");
+        return;
+    }
+    musicElement.play();
+
+    // init the interesting stuff
+    gameInit();
     
+    // run
+    setTimeout("update()", 0.0);
+
     log("done");
 }
 
@@ -122,42 +141,6 @@ function update()
     g_lastTime = time;
     g_tick++;   
     setTimeout("update()", MIN_DT);
-}
-
-//-------------------------------------------------------------------------------
-// game init
-var g_kittyImg;
-var g_kittyfImg;
-var g_darknessImg;
-var g_spiderImg;
-var g_spiderX = new Array(SPIDER_COUNT);
-var g_spiderY = new Array(SPIDER_COUNT);
-function gameInit()
-{
-    g_kittyImg = new Image();
-    g_kittyImg.src = "kitty.png";
-    g_kittyImg.onload = function() {};
-
-    g_kittyfImg = new Image();
-    g_kittyfImg.src = "kittyf.png";
-    g_kittyfImg.onload = function() {};
-
-    g_darknessImg = new Image();
-    g_darknessImg.src = "darkness.png";
-    g_darknessImg.onload = function() {};
-
-    g_spiderImg = new Image();
-    g_spiderImg.src = "spider.png";
-    g_spiderImg.onload = function() {};
-
-    for (var i=0; i<SPIDER_COUNT; ++i)
-    {
-        g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
-        g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
-    }
-
-    document.onkeydown = keyDown;
-    document.onkeyup = keyUp;
 }
 
 //-------------------------------------------------------------------------------
@@ -210,6 +193,40 @@ function lerp(t, a, b)
 }
 
 //-------------------------------------------------------------------------------
+// game init
+var g_kittyImg;
+var g_kittyfImg;
+var g_darknessImg;
+var g_spiderImg;
+var g_spiderX = new Array(SPIDER_COUNT);
+var g_spiderY = new Array(SPIDER_COUNT);
+var g_music;
+function gameInit()
+{
+    g_kittyImg = new Image();
+    g_kittyImg.src = "kitty.png";
+    g_kittyImg.onload = function() {};
+
+    g_kittyfImg = new Image();
+    g_kittyfImg.src = "kittyf.png";
+    g_kittyfImg.onload = function() {};
+
+    g_darknessImg = new Image();
+    g_darknessImg.src = "darkness.png";
+    g_darknessImg.onload = function() {};
+
+    g_spiderImg = new Image();
+    g_spiderImg.src = "spider.png";
+    g_spiderImg.onload = function() {};
+
+    for (var i=0; i<SPIDER_COUNT; ++i)
+    {
+        g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
+        g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
+    }
+}
+
+//-------------------------------------------------------------------------------
 // game update
 const LIGHT_SMOOTH = 0.3;
 const LIGHT_SMOOTH2 = 0.3;
@@ -253,7 +270,7 @@ function gameDraw()
         LIGHT_CLEARSIZE, LIGHT_CLEARSIZE);
 
     // draw spiders
-    // NB: only if inside halo to preserve perf, extra boarders prevents popping
+    // NB: only if inside halo to preserve perf, extra borders prevent popping
     var darknessImgX = g_lightX - LIGHT_SIZE * 0.5;
     var darknessImgY = g_lightY - LIGHT_SIZE * 0.5;
     for (var i=0; i<SPIDER_COUNT; ++i)

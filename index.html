@@ -11,6 +11,8 @@
   </head> 
  
   <body onload="init();">
+
+    <!-- infos -->
     <h1>Lone Kitty</h1>
     <p>
       Kitty feels lonely. Help him find some joy with your keyboard's arrow keys.
@@ -23,14 +25,26 @@
       <a href="http://excanvas.sourceforge.net/">excanvas</a>.  Sources on
       <a href="http://github.com/lorancou/lonekitty/">github</a>.
     </p>
+
+    <!-- music, played from js -->
+    <audio id="music" loop="true" <!--autoplay="true"-->>
+      <source src="warmkitty.ogg" type="audio/ogg" />
+      <source src="warmkitty.mp3" type="audio/mp3" />
+      ERROR: No audio tag support
+    </audio>
+
+    <!-- canvas -->
     <div style="float: left;">
       <canvas id="canvas"></canvas>
     </div>
+
+    <!-- output -->
     <div style="float: left; padding-left: 10;">
       <p id="fps"></p>
       <p>Output</p>
       <div id="output"></div>
     </div>
+
   </body>
  
 </html>
