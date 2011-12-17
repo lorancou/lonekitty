@@ -227,50 +227,32 @@ function gameUpdate()
 
 //-------------------------------------------------------------------------------
 // game draw
-const LIGHT_RADIUS = 100;
-const LIGHT_BLITSIZE = LIGHT_RADIUS + 10; // a bit of extra width to hide previous draw
-const SPRITELIGHT_CLEARSIZE = 118;
-const SPRITELIGHT_SIZE = 128;
+const LIGHT_SIZE = 256;
+const LIGHT_CLEARSIZE = LIGHT_SIZE * 0.85;
 const KITTY_SIZE = 64;
 function gameDraw()
 {
-    // clear canvas
-    //g_context.fillStyle = '#000000';
-    //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // draw radial light around kitty
-    /*var radGrad = g_context.createRadialGradient(
-        g_lightX, g_lightY, LIGHT_RADIUS * 0.8,
-        g_lightX, g_lightY, LIGHT_RADIUS
-    );
-    radGrad.addColorStop(0, '#FFFFFF');
-    radGrad.addColorStop(1, '#000000');
-    g_context.fillStyle = radGrad;
-    g_context.fillRect(
-        g_lightX - LIGHT_BLITSIZE,
-        g_lightY - LIGHT_BLITSIZE,
-        LIGHT_BLITSIZE * 2,
-        LIGHT_BLITSIZE * 2);*/
-
-    // light v2 bottom clear
-    var lightClearX = g_lightX - SPRITELIGHT_CLEARSIZE * 0.5;
-    var lightClearY = g_lightY - SPRITELIGHT_CLEARSIZE * 0.5;
+    // light bottom clear
+    var lightClearX = g_lightX - LIGHT_CLEARSIZE * 0.5;
+    var lightClearY = g_lightY - LIGHT_CLEARSIZE * 0.5;
     g_context.fillStyle = '#FFFFFF';
     g_context.fillRect(
         lightClearX, lightClearY,
-        SPRITELIGHT_CLEARSIZE, SPRITELIGHT_CLEARSIZE);
+        LIGHT_CLEARSIZE, LIGHT_CLEARSIZE);
     
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
     var kittyImgY = g_kittyY - KITTY_SIZE * 0.5;
     g_context.drawImage(
         g_kittyFlip ? g_kittyfImg : g_kittyImg,
-        kittyImgX, kittyImgY);
+        kittyImgX, kittyImgY,
+        KITTY_SIZE, KITTY_SIZE);
 
-    // light v2 darkness halo
-    var lightImgX = g_lightX - SPRITELIGHT_SIZE * 0.5;
-    var lightImgY = g_lightY - SPRITELIGHT_SIZE * 0.5;
+    // light darkness halo
+    var lightImgX = g_lightX - LIGHT_SIZE * 0.5;
+    var lightImgY = g_lightY - LIGHT_SIZE * 0.5;
     g_context.drawImage(
         g_darknessImg,
-        lightImgX, lightImgY);
+        lightImgX, lightImgY,
+        LIGHT_SIZE, LIGHT_SIZE);
 }
