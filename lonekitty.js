@@ -89,21 +89,6 @@ function init()
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 
-    // no doc for this Audio thing, how can I loop this??
-    /*g_music = new Audio();
-    g_music.src = "warmkitty.ogg";
-    g_music.load();
-    g_music.play();*/
-
-    // play music
-    var musicElement = document.getElementById("music");
-    if (!musicElement)
-    {
-        log("ERROR: missing music element");
-        return;
-    }
-    musicElement.play();
-
     // init the interesting stuff
     gameInit();
     
@@ -200,7 +185,6 @@ var g_darknessImg;
 var g_spiderImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
-var g_music;
 function gameInit()
 {
     g_kittyImg = new Image();
