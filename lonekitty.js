@@ -9,8 +9,11 @@
  * This program is free software - see README for details.
  */
 
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 800;
+
 // log
-const MAX_LOG_LINES = 4;
+const MAX_LOG_LINES = 42;
 function log(msg)
 {
     var begin = '<ul><li>';
@@ -64,6 +67,10 @@ function init()
         log("ERROR: missing context");
         return;
     }
+
+    // clear canvas
+    g_context.fillStyle = '#000000';
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     gameInit();
 
@@ -157,9 +164,7 @@ function keyUp(e)
 }
 
 // game update
-const CANVAS_WIDTH = 400;
-const CANVAS_HEIGHT = 300;
-const KITTY_SPEED = 2.5;
+const KITTY_SPEED = 5.0;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
 function gameUpdate()
@@ -175,13 +180,29 @@ function gameUpdate()
 }
 
 // game draw
+const LIGHT_RADIUS = 100;
+const LIGHT_BLITSIZE = LIGHT_RADIUS + 10; // a bit of extra width to hide previous draw
 const KITTY_WIDTH = 64;
 const KITTY_HEIGHT = 64;
 function gameDraw()
 {
     // clear canvas
-    g_context.fillStyle = "rgba(255,255,255,1.0)";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    //g_context.fillStyle = '#000000';
+    //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // draw radial light around kitty
+    var radGrad = g_context.createRadialGradient(
+        g_kittyX, g_kittyY, LIGHT_RADIUS * 0.8,
+        g_kittyX, g_kittyY, LIGHT_RADIUS
+    );
+    radGrad.addColorStop(0, '#FFFFFF');
+    radGrad.addColorStop(1, '#000000');
+    g_context.fillStyle = radGrad;
+    g_context.fillRect(
+        g_kittyX - LIGHT_BLITSIZE,
+        g_kittyY - LIGHT_BLITSIZE,
+        LIGHT_BLITSIZE * 2,
+        LIGHT_BLITSIZE * 2);
     
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_WIDTH * 0.5;
