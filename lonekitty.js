@@ -159,15 +159,16 @@ function keyUp(e)
 // game update
 const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 300;
+const KITTY_SPEED = 2.5;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
 function gameUpdate()
 {
     // apply inputs
-    if (g_leftPressed) --g_kittyX;
-    if (g_upPressed) --g_kittyY;
-    if (g_rightPressed) ++g_kittyX;
-    if (g_downPressed) ++g_kittyY;
+    if (g_leftPressed) g_kittyX -= KITTY_SPEED;
+    if (g_upPressed) g_kittyY -= KITTY_SPEED;
+    if (g_rightPressed) g_kittyX += KITTY_SPEED;
+    if (g_downPressed) g_kittyY += KITTY_SPEED;
 
     // reset inputs
     //g_leftPressed = g_upPressed = g_rightPressed = g_downPressed = false;
