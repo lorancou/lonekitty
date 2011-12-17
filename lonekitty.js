@@ -13,7 +13,7 @@ const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
 
 // log
-const MAX_LOG_LINES = 42;
+const MAX_LOG_LINES = 32;
 function log(msg)
 {
     var begin = '<ul><li>';
@@ -163,10 +163,22 @@ function keyUp(e)
     }
 }
 
+// maths
+function lerp(t, a, b)
+{
+    return a + t * (b -a);
+}
+
 // game update
 const KITTY_SPEED = 5.0;
+const LIGHT_SMOOTH = 0.2;
+const LIGHT_SMOOTH2 = 0.2;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
+var g_lightX = CANVAS_WIDTH * 0.5;
+var g_lightY = CANVAS_HEIGHT * 0.5;
+var g_lightTargetX = CANVAS_WIDTH * 0.5;
+var g_lightTargetY = CANVAS_HEIGHT * 0.5;
 function gameUpdate()
 {
     // apply inputs
@@ -174,6 +186,12 @@ function gameUpdate()
     if (g_upPressed) g_kittyY -= KITTY_SPEED;
     if (g_rightPressed) g_kittyX += KITTY_SPEED;
     if (g_downPressed) g_kittyY += KITTY_SPEED;
+
+    // move light with a bit of smoothing
+    g_lightTargetX = lerp(LIGHT_SMOOTH, g_lightTargetX, g_kittyX);
+    g_lightTargetY = lerp(LIGHT_SMOOTH, g_lightTargetY, g_kittyY);
+    g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
+    g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
 
     // reset inputs
     //g_leftPressed = g_upPressed = g_rightPressed = g_downPressed = false;
@@ -192,15 +210,15 @@ function gameDraw()
 
     // draw radial light around kitty
     var radGrad = g_context.createRadialGradient(
-        g_kittyX, g_kittyY, LIGHT_RADIUS * 0.8,
-        g_kittyX, g_kittyY, LIGHT_RADIUS
+        g_lightX, g_lightY, LIGHT_RADIUS * 0.8,
+        g_lightX, g_lightY, LIGHT_RADIUS
     );
     radGrad.addColorStop(0, '#FFFFFF');
     radGrad.addColorStop(1, '#000000');
     g_context.fillStyle = radGrad;
     g_context.fillRect(
-        g_kittyX - LIGHT_BLITSIZE,
-        g_kittyY - LIGHT_BLITSIZE,
+        g_lightX - LIGHT_BLITSIZE,
+        g_lightY - LIGHT_BLITSIZE,
         LIGHT_BLITSIZE * 2,
         LIGHT_BLITSIZE * 2);
     
