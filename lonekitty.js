@@ -13,22 +13,27 @@
 // main constants
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
+const KITTY_SPEED = 5.0;
+const KITTY_SIZE = 64;
+const LIGHT_SIZE = 256;
+const SPIDER_SIZE = 32;
+const SPIDER_COUNT = 128;
 
 //-------------------------------------------------------------------------------
 // log
 const MAX_LOG_LINES = 32;
 function log(msg)
 {
-    var begin = '<ul><li>';
-    var middle = '</li><li>';
-    var end = '</li></ul>';
+    var begin = "<ul><li>";
+    var middle = "</li><li>";
+    var end = "</li></ul>";
 
     console.log(msg);
 
     var output_div = document.getElementById("output");
     if ( output_div )
     {
-        var lines = output_div.innerHTML; //.toLowerCase();
+        var lines = output_div.innerHTML;
         var lineList;
         
         if (lines.length > 0)
@@ -57,7 +62,7 @@ function init()
     log("initializing...");
     
     // get canvas element
-    var canvasElement = document.getElementById('canvas');
+    var canvasElement = document.getElementById("canvas");
     if (!canvasElement)
     {
         log("ERROR: missing canvas");
@@ -69,7 +74,7 @@ function init()
     canvasElement.height = CANVAS_HEIGHT;
 
     // get canvas context
-    g_context = canvasElement.getContext('2d');
+    g_context = canvasElement.getContext("2d");
     if (!g_context)
     {
         log("ERROR: missing context");
@@ -77,13 +82,14 @@ function init()
     }
 
     // clear canvas
-    g_context.fillStyle = '#000000';
+    g_context.fillStyle = "#000000";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // init the intersting stuff
     gameInit();
 
     // plan first update
-    setTimeout('update()', 0.0);
+    setTimeout("update()", 0.0);
     
     log("done");
 }
@@ -96,12 +102,11 @@ var g_lastTime = new Date().getTime();
 var g_tick = 0;
 function update()
 {
-    //log("update");
-
     var time = new Date().getTime();
     var dt = time - g_lastTime;
     var fps = 1000.0 / dt;
    
+    // update the intersting stuff
     gameUpdate(dt);
     gameDraw();
     
@@ -116,7 +121,7 @@ function update()
     // move on to next update
     g_lastTime = time;
     g_tick++;   
-    setTimeout('update()', MIN_DT);
+    setTimeout("update()", MIN_DT);
 }
 
 //-------------------------------------------------------------------------------
@@ -124,6 +129,9 @@ function update()
 var g_kittyImg;
 var g_kittyfImg;
 var g_darknessImg;
+var g_spiderImg;
+var g_spiderX = new Array(SPIDER_COUNT);
+var g_spiderY = new Array(SPIDER_COUNT);
 function gameInit()
 {
     g_kittyImg = new Image();
@@ -137,6 +145,16 @@ function gameInit()
     g_darknessImg = new Image();
     g_darknessImg.src = "darkness.png";
     g_darknessImg.onload = function() {};
+
+    g_spiderImg = new Image();
+    g_spiderImg.src = "spider.png";
+    g_spiderImg.onload = function() {};
+
+    for (var i=0; i<SPIDER_COUNT; ++i)
+    {
+        g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
+        g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
+    }
 
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
@@ -193,7 +211,6 @@ function lerp(t, a, b)
 
 //-------------------------------------------------------------------------------
 // game update
-const KITTY_SPEED = 5.0;
 const LIGHT_SMOOTH = 0.3;
 const LIGHT_SMOOTH2 = 0.3;
 var g_kittyX = CANVAS_WIDTH * 0.5;
@@ -220,25 +237,40 @@ function gameUpdate()
     g_lightTargetY = lerp(LIGHT_SMOOTH, g_lightTargetY, g_kittyY);
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
     g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
-
-    // reset inputs
-    //g_leftPressed = g_upPressed = g_rightPressed = g_downPressed = false;
 }
 
 //-------------------------------------------------------------------------------
 // game draw
-const LIGHT_SIZE = 256;
 const LIGHT_CLEARSIZE = LIGHT_SIZE * 0.85;
-const KITTY_SIZE = 64;
 function gameDraw()
 {
     // light bottom clear
     var lightClearX = g_lightX - LIGHT_CLEARSIZE * 0.5;
     var lightClearY = g_lightY - LIGHT_CLEARSIZE * 0.5;
-    g_context.fillStyle = '#FFFFFF';
+    g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(
         lightClearX, lightClearY,
         LIGHT_CLEARSIZE, LIGHT_CLEARSIZE);
+
+    // draw spiders
+    // NB: only if inside halo to preserve perf, extra boarders prevents popping
+    var darknessImgX = g_lightX - LIGHT_SIZE * 0.5;
+    var darknessImgY = g_lightY - LIGHT_SIZE * 0.5;
+    for (var i=0; i<SPIDER_COUNT; ++i)
+    {
+        var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
+        var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
+        if (spiderImgX > darknessImgX &&
+            (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
+            spiderImgY > darknessImgY &&
+            (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
+        {            
+            g_context.drawImage(
+                g_spiderImg,
+                spiderImgX, spiderImgY,
+                SPIDER_SIZE, SPIDER_SIZE);
+        }
+    }
     
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
@@ -248,11 +280,9 @@ function gameDraw()
         kittyImgX, kittyImgY,
         KITTY_SIZE, KITTY_SIZE);
 
-    // light darkness halo
-    var lightImgX = g_lightX - LIGHT_SIZE * 0.5;
-    var lightImgY = g_lightY - LIGHT_SIZE * 0.5;
+    // darkness halo
     g_context.drawImage(
         g_darknessImg,
-        lightImgX, lightImgY,
+        darknessImgX, darknessImgY,
         LIGHT_SIZE, LIGHT_SIZE);
 }
