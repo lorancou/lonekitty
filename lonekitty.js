@@ -20,7 +20,7 @@ const KITTY_SIZE = 64;
 const KITTY_FRAME_COUNT = 4;
 const KITTY_ANIM_SPEED = 0.01;
 const LIGHT_MIN_SIZE = 128;
-const LIGHT_MAX_SIZE = 256;
+const LIGHT_MAX_SIZE = 350;
 const SPIDER_SPEED = 0.5;
 const SPIDER_TURN_SPEED = 0.01;
 const SPIDER_SIZE = 32;
@@ -346,13 +346,22 @@ function gameUpdate()
     g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
 
     // update light size
+    var progress = g_deadSpiderCount / SPIDER_COUNT;
     g_lightSize = lerp(
-        g_deadSpiderCount / SPIDER_COUNT,
+        progress,
         LIGHT_MIN_SIZE, LIGHT_MAX_SIZE
     );
 
     // spiders
-    var fleeDist = (g_lightSize * 0.5) - SPIDER_FLEE_MARGIN;
+    const START_FLEE_DIST = LIGHT_MIN_SIZE;
+    const END_FLEE_DIST = 50;
+    const END_FLEE_DIST_GROW = 0.5;
+    var fleeDist = END_FLEE_DIST;
+    if (progress < END_FLEE_DIST_GROW)
+    {
+        fleeDist = lerp(progress/END_FLEE_DIST_GROW, START_FLEE_DIST, END_FLEE_DIST);
+    }
+    //log(fleeDist);
     var sqFleeDist = fleeDist * fleeDist;
     g_deadSpiderCount = 0;
     for (var i=0; i<SPIDER_COUNT; ++i)
@@ -544,6 +553,6 @@ function gameDraw()
     g_context.fillRect(xleft2, ytop, hwidth, hheight); // top strip
     g_context.fillRect(xleft2, ybottom, hwidth, hheight); // top strip
     // debug draw
-    //g_context.strokeStyle = "red";
-    //g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
+    g_context.strokeStyle = "red";
+    g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
 }
