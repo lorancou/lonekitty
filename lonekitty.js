@@ -32,7 +32,7 @@ const SPIDER_FLEE_MARGIN = 20;
 const SPIDER_FLEE_FACTOR = 5.0;
 const SPIDER_SAFE_MARGIN = 100;
 const AREA_RADIUS = 210;
-const EXIT_URL = "http://www.youtube.com/watch?v=QH2-TGUlwu4&autoplay=1";
+const EXIT_URL = "http://www.youtube.com/v/QH2-TGUlwu4?autoplay=1";
 
 //-------------------------------------------------------------------------------
 // log
@@ -553,6 +553,6 @@ function gameDraw()
     g_context.fillRect(xleft2, ytop, hwidth, hheight); // top strip
     g_context.fillRect(xleft2, ybottom, hwidth, hheight); // top strip
     // debug draw
-    g_context.strokeStyle = "red";
-    g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
+    // g_context.strokeStyle = "red";
+    // g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
 }
