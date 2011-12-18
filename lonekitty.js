@@ -19,15 +19,16 @@ const KITTY_SPEED = 2.0;
 const KITTY_SIZE = 64;
 const KITTY_FRAME_COUNT = 4;
 const KITTY_ANIM_SPEED = 0.01;
-const LIGHT_SIZE = 256;
+const LIGHT_MIN_SIZE = 128;
+const LIGHT_MAX_SIZE = 256;
 const SPIDER_SPEED = 0.5;
 const SPIDER_SIZE = 32;
 const SPIDER_FRAME_COUNT = 4;
 const SPIDERDEATH_FRAME_COUNT = 4;
 const SPIDER_ANIM_SPEED = 0.05;
 const SPIDER_COUNT = 256;
-const SPIDER_FLEE_DIST = 90;
-const SPIDER_FLEE_FACTOR = 0.05;
+const SPIDER_FLEE_MARGIN = 20;
+const SPIDER_FLEE_FACTOR = 0.1;
 const AREA_RADIUS = 210;
 const EXIT_URL = "http://www.youtube.com/watch?v=QH2-TGUlwu4&autoplay=1";
 
@@ -269,7 +270,8 @@ function gameInit()
 
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
-        var distFromCenter = SPIDER_FLEE_DIST + Math.random() * (AREA_RADIUS - SPIDER_FLEE_DIST);
+        var minDist = LIGHT_MIN_SIZE * 0.5;
+        var distFromCenter = minDist + Math.random() * (AREA_RADIUS - minDist);
         var angle = Math.random() * Math.PI * 2;
 
         //log("spider spawn " + i + " d=" + distFromCenter + " a=" + angle);
@@ -298,6 +300,8 @@ var g_lightX = CANVAS_WIDTH * 0.5;
 var g_lightY = CANVAS_HEIGHT * 0.5;
 var g_lightTargetX = CANVAS_WIDTH * 0.5;
 var g_lightTargetY = CANVAS_HEIGHT * 0.5;
+var g_lightSize = LIGHT_MIN_SIZE;
+var g_deadSpiderCount = 0;
 function gameUpdate()
 {
     // move kitty
@@ -333,9 +337,16 @@ function gameUpdate()
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
     g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
 
+    // update light size
+    g_lightSize = lerp(
+        g_deadSpiderCount / SPIDER_COUNT,
+        LIGHT_MIN_SIZE, LIGHT_MAX_SIZE
+    );
+
     // spiders
-    var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
-    var allDead = true;
+    var fleeDist = (g_lightSize * 0.5) - SPIDER_FLEE_MARGIN;
+    var sqFleeDist = fleeDist * fleeDist;
+    g_deadSpiderCount = 0;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
         if (!g_spiderOut[i])
@@ -351,12 +362,15 @@ function gameUpdate()
                 g_spiderX[i] += t * dx * SPIDER_FLEE_FACTOR;
                 g_spiderY[i] += t * dy * SPIDER_FLEE_FACTOR;
             }
+            else
+            {
+                // always move a bit if 
+                dx = Math.cos(g_spiderAngle[i]) * SPIDER_SPEED;
+                dy = Math.sin(g_spiderAngle[i]) * SPIDER_SPEED;
+                //g_spiderX[i] += dx;
+                //g_spiderY[i] += dy;
+            }
 
-            // always move a bit
-            dx = Math.cos(g_spiderAngle[i]) * SPIDER_SPEED;
-            dy = Math.sin(g_spiderAngle[i]) * SPIDER_SPEED;
-            g_spiderX[i] += dx;
-            g_spiderY[i] += dy;
 
             // update animation cursor
             g_spiderAnimCursor[i] += SPIDER_ANIM_SPEED;
@@ -374,18 +388,20 @@ function gameUpdate()
                 //log("spider " + i + " out");
                 g_spiderOut[i] = true;
             }
-            allDead = false;
         }
         else if (g_spiderdeathAnimCursor[i] < 1.0)
         {
             // update death anim cursor
             g_spiderdeathAnimCursor[i] += SPIDER_ANIM_SPEED;
-            allDead = false;
+        }
+        else
+        {
+            ++g_deadSpiderCount;
         }
     }
 
     // win condition: all spiders out and dead
-    if (allDead)
+    if (g_deadSpiderCount == SPIDER_COUNT)
     {
         exit();
     }
@@ -393,18 +409,16 @@ function gameUpdate()
 
 //-------------------------------------------------------------------------------
 // game draw
-const LIGHT_CLEARSIZE = LIGHT_SIZE * 0.85;
 function gameDraw()
 {
     // draw area / clear canvas (partly)
     // NB: this works as long as the area image fits the canvas
-    var darknessImgX = Math.floor(g_lightX - LIGHT_SIZE * 0.5);
-    var darknessImgY = Math.floor(g_lightY - LIGHT_SIZE * 0.5);
-    const MARGIN = 5;
-    var leftX = clamp(darknessImgX + MARGIN, 0, CANVAS_WIDTH);
-    var topY = clamp(darknessImgY + MARGIN, 0, CANVAS_HEIGHT);
-    var rightX = clamp(darknessImgX + LIGHT_SIZE - MARGIN, 0, CANVAS_WIDTH);
-    var bottomY = clamp(darknessImgY + LIGHT_SIZE - MARGIN, 0, CANVAS_HEIGHT);
+    var darknessImgX = g_lightX - g_lightSize * 0.5;
+    var darknessImgY = g_lightY - g_lightSize * 0.5;
+    var leftX = clamp(darknessImgX, 0, CANVAS_WIDTH);
+    var topY = clamp(darknessImgY, 0, CANVAS_HEIGHT);
+    var rightX = clamp(darknessImgX + g_lightSize, 0, CANVAS_WIDTH);
+    var bottomY = clamp(darknessImgY + g_lightSize, 0, CANVAS_HEIGHT);
     //log ("lx=" + leftX + " ty=" + topY + " rx=" + rightX + " by=" + bottomY);
     g_context.drawImage(
         g_areaImg,
@@ -415,17 +429,15 @@ function gameDraw()
     );
 
     // draw spiders
-    // NB: only if inside halo to preserve perf, extra borders prevent popping
-    var darknessImgX = g_lightX - LIGHT_SIZE * 0.5;
-    var darknessImgY = g_lightY - LIGHT_SIZE * 0.5;
+    // NB: only if inside halo to preserve perf
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
         var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
         var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
-        if (spiderImgX > darknessImgX &&
-            (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
-            spiderImgY > darknessImgY &&
-            (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
+        if ((spiderImgX + SPIDER_SIZE) > darknessImgX &&
+            spiderImgX < (darknessImgX + g_lightSize) &&
+            (spiderImgY + SPIDER_SIZE) > darknessImgY &&
+            spiderImgY < (darknessImgY + g_lightSize))
         {
             if (!g_spiderOut[i])
             {
@@ -464,5 +476,28 @@ function gameDraw()
     g_context.drawImage(
         g_darknessImg,
         darknessImgX, darknessImgY,
-        LIGHT_SIZE, LIGHT_SIZE);
+        g_lightSize, g_lightSize);
+
+    // extra clearing strips to hide spiders
+    var clearSize = g_lightSize + SPIDER_SIZE * 2;
+    var clearX = g_lightX - clearSize * 0.5;
+    var clearY = g_lightY - clearSize * 0.5;
+    const MARGIN = 1;
+    var xleft = clearX - MARGIN;
+    var xright = clearX + g_lightSize + SPIDER_SIZE - MARGIN;
+    var xleft2 = clearX + SPIDER_SIZE - MARGIN;
+    var ytop = clearY - MARGIN;
+    var ybottom = clearY + g_lightSize + SPIDER_SIZE - MARGIN;
+    var vwidth = SPIDER_SIZE + MARGIN * 2;
+    var vheight = clearSize + MARGIN * 2;
+    var hwidth = g_lightSize + MARGIN * 2;
+    var hheight = SPIDER_SIZE + MARGIN * 2;
+    g_context.fillStyle = "black";
+    g_context.fillRect(xleft, ytop, vwidth, vheight); // left strip
+    g_context.fillRect(xright, ytop, vwidth, vheight); // right strip
+    g_context.fillRect(xleft2, ytop, hwidth, hheight); // top strip
+    g_context.fillRect(xleft2, ybottom, hwidth, hheight); // top strip
+    // debug draw
+    //g_context.strokeStyle = "red";
+    //g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
 }
