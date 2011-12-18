@@ -11,8 +11,8 @@
 
 //-------------------------------------------------------------------------------
 // main constants
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 600;
+const CANVAS_WIDTH = 512;
+const CANVAS_HEIGHT = 512;
 const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 5.0;
@@ -22,7 +22,7 @@ const SPIDER_SIZE = 32;
 const SPIDER_COUNT = 128;
 const SPIDER_FLEE_DIST = 70;
 const SPIDER_FLEE_FACTOR = 0.2;
-const SPIDER_AREA_RADIUS = 200;
+const AREA_RADIUS = 210;
 
 //-------------------------------------------------------------------------------
 // log
@@ -147,7 +147,7 @@ function keyDown(e)
 	else ev = e;
     if (ev == null) return;
     
-	log("key down: " + ev.keyCode);
+	//log("key down: " + ev.keyCode);
 
     switch ( ev.keyCode )
     {
@@ -164,7 +164,7 @@ function keyUp(e)
 	else ev = e;
     if (ev == null) return;
     
-	log("key up: " + ev.keyCode);
+	//log("key up: " + ev.keyCode);
 
     switch ( ev.keyCode )
     {
@@ -181,6 +181,12 @@ function lerp(t, a, b)
 {
     return a + t * (b -a);
 }
+function clamp(v, min, max)
+{
+    if (v < min) return min;
+    if (v > max) return max;
+    return v;
+}
 
 //-------------------------------------------------------------------------------
 // game init
@@ -188,6 +194,7 @@ var g_kittyImg;
 var g_kittyfImg;
 var g_darknessImg;
 var g_spiderImg;
+var g_areaImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
 var g_spiderOut = new Array(SPIDER_COUNT);
@@ -208,6 +215,10 @@ function gameInit()
     g_spiderImg = new Image();
     g_spiderImg.src = "spider.png";
     g_spiderImg.onload = function() {};
+
+    g_areaImg = new Image();
+    g_areaImg.src = "area.png";
+    g_areaImg.onload = function() {};
 
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
@@ -236,6 +247,20 @@ function gameUpdate()
     if (g_rightPressed) g_kittyX += KITTY_SPEED;
     if (g_downPressed) g_kittyY += KITTY_SPEED;
 
+    // restrict to spider area
+    var sqAreaRadius = AREA_RADIUS*AREA_RADIUS;
+    var dx = g_kittyX - CANVAS_CENTER_X;
+    var dy = g_kittyY - CANVAS_CENTER_Y;
+    var sqDist = dx*dx + dy*dy;
+    if (sqDist > sqAreaRadius)
+    {
+        // maybe proper collision handling would be less glitchy :-/
+        //log("bringing kitty back to spider area");
+        var t = sqAreaRadius / sqDist;
+        g_kittyX = CANVAS_CENTER_X + dx * t;
+        g_kittyY = CANVAS_CENTER_Y + dy * t;
+    }
+
     // flip kitty
     if (g_leftPressed && !g_rightPressed && !g_kittyFlip) g_kittyFlip = true;
     if (g_rightPressed && !g_leftPressed && g_kittyFlip) g_kittyFlip = false;
@@ -248,23 +273,20 @@ function gameUpdate()
 
     // fleeing spiders
     var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
-    var sqAreaRadius = SPIDER_AREA_RADIUS*SPIDER_AREA_RADIUS;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
         if (!g_spiderOut[i])
         {
             // flee kitty
-            var dx = g_spiderX[i] - g_kittyX;
-            var dy = g_spiderY[i] - g_kittyY;
-            var sqDist = dx*dx + dy*dy;
+            dx = g_spiderX[i] - g_kittyX;
+            dy = g_spiderY[i] - g_kittyY;
+            sqDist = dx*dx + dy*dy;
             if (sqDist < sqFleeDist)
             {
-                log("spider " + i + " fleeing");
-                var t = 1.0 - (sqDist / sqFleeDist);
-                var fleeVecX = t * dx * SPIDER_FLEE_FACTOR;
-                var fleeVecY = t * dy * SPIDER_FLEE_FACTOR;
-                g_spiderX[i] += fleeVecX;
-                g_spiderY[i] += fleeVecY;
+                //log("spider " + i + " fleeing");
+                t = 1.0 - (sqDist / sqFleeDist);
+                g_spiderX[i] += t * dx * SPIDER_FLEE_FACTOR;
+                g_spiderY[i] += t * dy * SPIDER_FLEE_FACTOR;
             }
 
             // "die" when outside area
@@ -284,13 +306,23 @@ function gameUpdate()
 const LIGHT_CLEARSIZE = LIGHT_SIZE * 0.85;
 function gameDraw()
 {
-    // light bottom clear
-    var lightClearX = g_lightX - LIGHT_CLEARSIZE * 0.5;
-    var lightClearY = g_lightY - LIGHT_CLEARSIZE * 0.5;
-    g_context.fillStyle = "#FFFFFF";
-    g_context.fillRect(
-        lightClearX, lightClearY,
-        LIGHT_CLEARSIZE, LIGHT_CLEARSIZE);
+    // draw area / clear canvas (partly)
+    // NB: this works as long as the area image fits the canvas
+    var darknessImgX = Math.floor(g_lightX - LIGHT_SIZE * 0.5);
+    var darknessImgY = Math.floor(g_lightY - LIGHT_SIZE * 0.5);
+    const MARGIN = 5;
+    var leftX = clamp(darknessImgX + MARGIN, 0, CANVAS_WIDTH);
+    var topY = clamp(darknessImgY + MARGIN, 0, CANVAS_HEIGHT);
+    var rightX = clamp(darknessImgX + LIGHT_SIZE - MARGIN, 0, CANVAS_WIDTH);
+    var bottomY = clamp(darknessImgY + LIGHT_SIZE - MARGIN, 0, CANVAS_HEIGHT);
+    //log ("lx=" + leftX + " ty=" + topY + " rx=" + rightX + " by=" + bottomY);
+    g_context.drawImage(
+        g_areaImg,
+        leftX, topY,                    // source pos
+        rightX - leftX, bottomY - topY, // source size
+        leftX, topY,                    // dest pos
+        rightX - leftX, bottomY - topY  // dest size
+    );
 
     // draw spiders
     // NB: only if inside halo to preserve perf, extra borders prevent popping
@@ -314,13 +346,6 @@ function gameDraw()
             }
         }
     }
-
-    // draw spider area
-    g_context.beginPath();
-    g_context.arc(CANVAS_CENTER_X, CANVAS_CENTER_Y, SPIDER_AREA_RADIUS, 0, Math.PI*2, true);
-    g_context.strokeStyle = "black"; // line color
-    g_context.closePath();
-    g_context.stroke();
 
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
