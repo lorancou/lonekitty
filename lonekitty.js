@@ -244,6 +244,12 @@ var g_darknessImg;
 var g_spiderImg;
 var g_spiderdeathImg;
 var g_areaImg;
+const MEOW_SFX_COUNT = 1;
+var g_meowSfx = new Array(MEOW_SFX_COUNT);
+const POUITCH_SFX_COUNT = 3;
+var g_pouitchSfx = new Array(MEOW_SFX_COUNT);
+var g_lastPouitchTick = 0;
+var g_footstepSfx;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
 var g_spiderAngle = new Array(SPIDER_COUNT);
@@ -252,11 +258,12 @@ var g_spiderTurnCursor = new Array(SPIDER_COUNT);
 var g_spiderAnimCursor = new Array(SPIDER_COUNT);
 var g_spiderdeathAnimCursor = new Array(SPIDER_COUNT);
 var g_spiderOut = new Array(SPIDER_COUNT);
+var g_smReady = false;
 function gameInit()
 {
     g_kittyImg = new Image();
     g_kittyImg.src = "kitty.png";
-    g_kittyImg.onload = function() {};
+    g_kittyImg.onload = function() { /* game should wait for this to start, but meh. */ };
 
     g_kittyfImg = new Image();
     g_kittyfImg.src = "kittyf.png";
@@ -277,6 +284,45 @@ function gameInit()
     g_areaImg = new Image();
     g_areaImg.src = "area.png";
     g_areaImg.onload = function() {};
+
+    // grr doesnt work
+    /*soundManager.url='swf'
+    soundManager.debugMode=false;
+    soundManager.flashVersion='9';
+    soundManager.bgColor='#666666';
+    soundManager.useFlashBlock=true;
+    var snd = {};
+    function init_snd(){
+	    snd.laser = soundManager.createSound({
+			id:'snd_laser',
+	   		url:'warmkitty.ogg',
+			autoPlay: true,
+			autoLoad: true,
+	    });
+        g_smReady = true;
+    }
+    soundManager.onready(init_snd);*/
+
+    for (var i=0; i<MEOW_SFX_COUNT; ++i)
+    {
+        g_meowSfx[i] = new Audio();
+        g_meowSfx[i].src = "meow" + i + ".mp3"
+        //g_meowSfx[i].src = "footstep.mp3";
+        //g_meowSfx[i].load();
+    }
+
+    for (var i=0; i<POUITCH_SFX_COUNT; ++i)
+    {
+        g_pouitchSfx[i] = new Audio();
+        g_pouitchSfx[i].src = "pouitch" + i +".mp3";
+        //g_pouitchSfx[i].src = "footstep.mp3";
+        //g_pouitchSfx[i].load();
+    }
+
+    g_footstepSfx = new Audio();
+    g_footstepSfx.src = "footstep.mp3";
+    //g_footstepSfx.loop = true;
+    //g_footstepSfx.play();
 
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
@@ -315,10 +361,43 @@ var g_deadSpiderCount = 0;
 function gameUpdate()
 {
     // move kitty
-    if (g_leftPressed) g_kittyX -= KITTY_SPEED;
-    if (g_upPressed) g_kittyY -= KITTY_SPEED;
-    if (g_rightPressed) g_kittyX += KITTY_SPEED;
-    if (g_downPressed) g_kittyY += KITTY_SPEED;
+    var isMoving = false;
+    if (g_leftPressed)
+    {
+        g_kittyX -= KITTY_SPEED;
+        isMoving = true;
+    }
+    if (g_upPressed)
+    {
+        g_kittyY -= KITTY_SPEED;
+        isMoving = true;
+    }
+    if (g_rightPressed)
+    {
+        g_kittyX += KITTY_SPEED;
+        isMoving = true;
+    }
+    if (g_downPressed)
+    {
+        g_kittyY += KITTY_SPEED;
+        isMoving = true;
+    }
+
+    // meow and footsteps once in a while
+    if (isMoving && 0==(g_tick%60))
+    {
+        var index = Math.floor(Math.random() * (MEOW_SFX_COUNT+5));
+        if (index < MEOW_SFX_COUNT)
+        {
+            log(g_meowSfx[index].src);
+            g_meowSfx[index].play();
+        }
+        else
+        {
+            log(g_footstepSfx.src);
+            g_footstepSfx.play();
+        }
+    }
 
     // restrict to spider area
     var sqAreaRadius = AREA_RADIUS*AREA_RADIUS;
@@ -439,6 +518,16 @@ function gameUpdate()
             {
                 //log("spider " + i + " out");
                 g_spiderOut[i] = true;
+
+                // play "pouitch" sfx
+                if ((g_tick - g_lastPouitchTick) > 2)
+                {
+                    var index = Math.floor(Math.random() * POUITCH_SFX_COUNT);
+                    log(g_pouitchSfx[index].src);
+                    g_pouitchSfx[index].play();
+
+                    g_lastPouitchTick = g_tick;
+                }
             }
         }
         else if (g_spiderdeathAnimCursor[i] < 1.0)
@@ -469,8 +558,8 @@ function gameDraw()
 
     // draw area / clear canvas (partly)
     // NB: this works as long as the area image fits the canvas
-    var darknessImgX = g_lightX - g_lightSize * 0.5;
-    var darknessImgY = g_lightY - g_lightSize * 0.5;
+    var darknessImgX = Math.floor(g_lightX - g_lightSize * 0.5);
+    var darknessImgY = Math.floor(g_lightY - g_lightSize * 0.5);
     var leftX = clamp(darknessImgX, 0, CANVAS_WIDTH);
     var topY = clamp(darknessImgY, 0, CANVAS_HEIGHT);
     var rightX = clamp(darknessImgX + g_lightSize, 0, CANVAS_WIDTH);
@@ -538,7 +627,7 @@ function gameDraw()
     var clearSize = g_lightSize + SPIDER_SIZE * 2;
     var clearX = g_lightX - clearSize * 0.5;
     var clearY = g_lightY - clearSize * 0.5;
-    const MARGIN = 1;
+    const MARGIN = 2;
     var xleft = clearX - MARGIN;
     var xright = clearX + g_lightSize + SPIDER_SIZE - MARGIN;
     var xleft2 = clearX + SPIDER_SIZE - MARGIN;

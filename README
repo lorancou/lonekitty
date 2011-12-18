@@ -26,5 +26,8 @@ program (LICENSE file). If not, see <http://www.gnu.org/licenses/>.
 ---------------------------------------------------------------------------------
 
 What would have helped:
-- a vector math lib
-- a simple collisions lib
+- vector math lib
+- collisions lib
+- sound lib, sound support with th Audio class is *POOR*
+  => SoundManager2 looks allright, but could get it to work (snif)
+- anim lib
