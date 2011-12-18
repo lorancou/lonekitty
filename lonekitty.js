@@ -24,19 +24,22 @@ const LIGHT_MAX_SIZE = 350;
 const SPIDER_SPEED = 0.5;
 const SPIDER_TURN_SPEED = 0.01;
 const SPIDER_SIZE = 32;
-const SPIDER_FRAME_COUNT = 4;
+const SPIDER_FRAME_COUNT = 16;
+const SPIDER_ANIM_SPEED = 0.01;
 const SPIDERDEATH_FRAME_COUNT = 4;
-const SPIDER_ANIM_SPEED = 0.05;
-const SPIDER_COUNT = 256;
+const SPIDERDEATH_ANIM_SPEED = 0.05;
+const SPIDER_COUNT = 128;
 const SPIDER_FLEE_MARGIN = 20;
 const SPIDER_FLEE_FACTOR = 5.0;
 const SPIDER_SAFE_MARGIN = 100;
 const AREA_RADIUS = 210;
 const EXIT_URL = "http://www.youtube.com/v/QH2-TGUlwu4?autoplay=1";
+const START_FLEE_DIST = 60;
+const END_FLEE_DIST = 80;
+const END_FLEE_DIST_GROW = 0.5;
 
 //-------------------------------------------------------------------------------
 // log
-const MAX_LOG_LINES = 20;
 function log(msg)
 {
     var begin = "<ul><li>";
@@ -54,6 +57,7 @@ function log(msg)
         if (lines.length > 0)
         {
             lineList = lines.substring(begin.length, lines.length - end.length).split(middle);
+            const MAX_LOG_LINES = 20;
             while (lineList.length >= MAX_LOG_LINES)
             {
                 lineList.shift();
@@ -115,8 +119,6 @@ function init()
 
 //-------------------------------------------------------------------------------
 // main update
-const AIM_FPS = 60.0;
-const MIN_DT = 1000.0 / AIM_FPS;
 var g_lastTime = new Date().getTime();
 var g_tick = 0;
 var g_exited = false;
@@ -143,6 +145,8 @@ function update()
     g_tick++;
     if (!g_exited)
     {
+        const AIM_FPS = 60.0;
+        const MIN_DT = 1000.0 / AIM_FPS;
         setTimeout("update()", MIN_DT);
     }
 }
@@ -298,8 +302,6 @@ function gameInit()
 
 //-------------------------------------------------------------------------------
 // game update
-const LIGHT_SMOOTH = 0.3;
-const LIGHT_SMOOTH2 = 0.3;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
 var g_kittyFlip = false;
@@ -340,6 +342,8 @@ function gameUpdate()
     g_kittyAnimCursor += KITTY_ANIM_SPEED;
 
     // move light with a bit of smoothing
+    const LIGHT_SMOOTH = 0.3;
+    const LIGHT_SMOOTH2 = 0.3;
     g_lightTargetX = lerp(LIGHT_SMOOTH, g_lightTargetX, g_kittyX);
     g_lightTargetY = lerp(LIGHT_SMOOTH, g_lightTargetY, g_kittyY);
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
@@ -353,9 +357,6 @@ function gameUpdate()
     );
 
     // spiders
-    const START_FLEE_DIST = LIGHT_MIN_SIZE;
-    const END_FLEE_DIST = 50;
-    const END_FLEE_DIST_GROW = 0.5;
     var fleeDist = END_FLEE_DIST;
     if (progress < END_FLEE_DIST_GROW)
     {
@@ -443,7 +444,7 @@ function gameUpdate()
         else if (g_spiderdeathAnimCursor[i] < 1.0)
         {
             // update death anim cursor
-            g_spiderdeathAnimCursor[i] += SPIDER_ANIM_SPEED;
+            g_spiderdeathAnimCursor[i] += SPIDERDEATH_ANIM_SPEED;
         }
         else
         {
