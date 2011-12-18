@@ -11,7 +11,7 @@
 
 //-------------------------------------------------------------------------------
 // main constants
-const CANVAS_WIDTH = 800;
+const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 600;
 const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;

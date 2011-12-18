@@ -4,37 +4,44 @@
     <title>Lone Kitty</title>
     <meta name="description" content="A Lumdum Dare #22 game entry" /> 
     <meta name="keywords" content="lonekitty, lone, kitty, lumdum, dare, 22, ld48" /> 
-    <!-- TODO <link rel="stylesheet" type="text/css" href="styles.css" media="screen" />--> 
+    <link rel="stylesheet" type="text/css" href="styles.css" media="screen" /> 
     <!-- TODO <link rel="icon" type="image/png" href="images/icon.png"/> -->
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
     <script type="text/javascript" src="lonekitty.js"></script>
   </head> 
  
-  <body onload="init();">
+  <body onload="init();" id="body">
 
-    <!-- infos -->
-    <h1>Lone Kitty</h1>
-    <p>
-      Kitty feels lonely. Help him find some joy with your keyboard's arrow keys.
-    </p>
-    <p>
-      A <a href="http://www.ludumdare.com/compo/">Lumdum Dare #22</a> game entry.
-      This is Javascript/HTML5/canvas stuff, so this should work with a recent
-      version of any modern browser (Firefox, Chrome...). You have a slight
-      chance to play with IE too, thanks to
-      <a href="http://excanvas.sourceforge.net/">excanvas</a>.  Sources on
-      <a href="http://github.com/lorancou/lonekitty/">github</a>.
-    </p>
+    <table><tr><td><div>
 
-    <!-- music -->
-    <audio id="music" loop="true" autoplay="true">
-      <source src="warmkitty.ogg" type="audio/ogg" />
-      <source src="warmkitty.mp3" type="audio/mp3" />
-      ERROR: No audio tag support
-    </audio>
+      <!-- infos -->
+      <h1>Lone Kitty</h1>
+      <p>
+        Kitty feels lonely. Help him find some joy with your keyboard's arrow keys.
+      </p>
+      <p>
+        A <a href="http://www.ludumdare.com/compo/">Lumdum Dare #22</a> game entry.
+        This is Javascript/HTML5/canvas stuff, so this should work with a recent
+        version of any modern browser (Firefox, Chrome...). You have a slight
+        chance to play with IE too, thanks to
+        <a href="http://excanvas.sourceforge.net/">excanvas</a>.  Sources on
+        <a href="http://github.com/lorancou/lonekitty/">github</a>.
+      </p>
 
-    <!-- canvas -->
-    <canvas id="canvas"></canvas>
+      <!-- music -->
+      <!--<audio id="music" loop="true" autoplay="true">
+        <source src="warmkitty.ogg" type="audio/ogg" />
+        <source src="warmkitty.mp3" type="audio/mp3" />
+        ERROR: No audio tag support
+      </audio>--!>
+
+      <!-- canvas -->
+      <canvas id="canvas"></canvas>
+
+      <!-- contact -->
+      <p id="footer">17-18 December 2011, <a href="mailto:lorancou@free.fr">lorancou</a></p>
+
+	</div></td></tr></table>
 
   </body>
  
