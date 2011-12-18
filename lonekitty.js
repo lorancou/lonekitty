@@ -17,6 +17,8 @@ const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 2.0;
 const KITTY_SIZE = 64;
+const KITTY_FRAME_COUNT = 4;
+const KITTY_ANIM_SPEED = 0.01;
 const LIGHT_SIZE = 256;
 const SPIDER_SPEED = 0.5;
 const SPIDER_SIZE = 32;
@@ -291,6 +293,7 @@ const LIGHT_SMOOTH2 = 0.3;
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
 var g_kittyFlip = false;
+var g_kittyAnimCursor = 0.0;
 var g_lightX = CANVAS_WIDTH * 0.5;
 var g_lightY = CANVAS_HEIGHT * 0.5;
 var g_lightTargetX = CANVAS_WIDTH * 0.5;
@@ -320,6 +323,9 @@ function gameUpdate()
     // flip kitty
     if (g_leftPressed && !g_rightPressed && !g_kittyFlip) g_kittyFlip = true;
     if (g_rightPressed && !g_leftPressed && g_kittyFlip) g_kittyFlip = false;
+
+    // update kitty anim cursor
+    g_kittyAnimCursor += KITTY_ANIM_SPEED;
 
     // move light with a bit of smoothing
     g_lightTargetX = lerp(LIGHT_SMOOTH, g_lightTargetX, g_kittyX);
@@ -436,7 +442,8 @@ function gameDraw()
                   g_spiderdeathImg,
                     spiderImgX, spiderImgY,
                     SPIDER_SIZE, SPIDER_SIZE,
-                    g_spiderdeathAnimCursor[i], SPIDERDEATH_FRAME_COUNT
+                    g_spiderdeathAnimCursor[i],
+                    SPIDERDEATH_FRAME_COUNT
                 );
             }
         }
@@ -445,10 +452,13 @@ function gameDraw()
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
     var kittyImgY = g_kittyY - KITTY_SIZE * 0.5;
-    g_context.drawImage(
+    drawAnimated(
         g_kittyFlip ? g_kittyfImg : g_kittyImg,
         kittyImgX, kittyImgY,
-        KITTY_SIZE, KITTY_SIZE);
+        KITTY_SIZE, KITTY_SIZE,
+        g_kittyAnimCursor,
+        KITTY_FRAME_COUNT
+    );
 
     // darkness halo
     g_context.drawImage(
