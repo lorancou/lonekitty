@@ -15,18 +15,19 @@ const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 512;
 const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
-const KITTY_SPEED = 5.0;
-const KITTY_SIZE = 64;
+const KITTY_SPEED = 2.0;
+const KITTY_SIZE = 40;
 const LIGHT_SIZE = 256;
-const SPIDER_SIZE = 32;
-const SPIDER_COUNT = 128;
-const SPIDER_FLEE_DIST = 70;
-const SPIDER_FLEE_FACTOR = 0.2;
+const SPIDER_SIZE = 20;
+const SPIDER_COUNT = 256;
+const SPIDER_FLEE_DIST = 90;
+const SPIDER_FLEE_FACTOR = 0.05;
 const AREA_RADIUS = 210;
+const EXIT_URL = "http://www.youtube.com/watch?v=QH2-TGUlwu4&autoplay=1";
 
 //-------------------------------------------------------------------------------
 // log
-const MAX_LOG_LINES = 32;
+const MAX_LOG_LINES = 20;
 function log(msg)
 {
     var begin = "<ul><li>";
@@ -109,6 +110,7 @@ const AIM_FPS = 60.0;
 const MIN_DT = 1000.0 / AIM_FPS;
 var g_lastTime = new Date().getTime();
 var g_tick = 0;
+var g_exited = false;
 function update()
 {
     var time = new Date().getTime();
@@ -129,8 +131,21 @@ function update()
     
     // move on to next update
     g_lastTime = time;
-    g_tick++;   
-    setTimeout("update()", MIN_DT);
+    g_tick++;
+    if (!g_exited)
+    {
+        setTimeout("update()", MIN_DT);
+    }
+}
+
+//-------------------------------------------------------------------------------
+// exit
+function exit()
+{
+    log("exit");
+
+    window.location = EXIT_URL;
+    g_exited = true;
 }
 
 //-------------------------------------------------------------------------------
@@ -222,8 +237,16 @@ function gameInit()
 
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
-        g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
-        g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
+        // g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
+        // g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
+
+        var distFromCenter = SPIDER_FLEE_DIST + Math.random() * (AREA_RADIUS - SPIDER_FLEE_DIST);
+        var angle = Math.random() * Math.PI * 2;
+        //log("spider " + i + " d=" + distFromCenter + " a=" + angle);
+
+        g_spiderX[i] = CANVAS_CENTER_X + distFromCenter * Math.cos(angle);
+        g_spiderY[i] = CANVAS_CENTER_Y + distFromCenter * Math.sin(angle);
+
         g_spiderOut[i] = false;
     }
 }
@@ -273,6 +296,7 @@ function gameUpdate()
 
     // fleeing spiders
     var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
+    var allOut = true;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
         if (!g_spiderOut[i])
@@ -295,9 +319,17 @@ function gameUpdate()
             sqDist = dx*dx + dy*dy;
             if (sqDist > sqAreaRadius)
             {
+                log("spider " + i + " out");
                 g_spiderOut[i] = true;
             }
+            allOut = false;
         }
+    }
+
+    // end condition: all spiders out
+    if (allOut)
+    {
+        exit();
     }
 }
 
