@@ -11,13 +11,18 @@
 
 //-------------------------------------------------------------------------------
 // main constants
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
+const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
+const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 5.0;
 const KITTY_SIZE = 64;
 const LIGHT_SIZE = 256;
 const SPIDER_SIZE = 32;
 const SPIDER_COUNT = 128;
+const SPIDER_FLEE_DIST = 70;
+const SPIDER_FLEE_FACTOR = 0.2;
+const SPIDER_AREA_RADIUS = 200;
 
 //-------------------------------------------------------------------------------
 // log
@@ -185,6 +190,7 @@ var g_darknessImg;
 var g_spiderImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
+var g_spiderOut = new Array(SPIDER_COUNT);
 function gameInit()
 {
     g_kittyImg = new Image();
@@ -207,6 +213,7 @@ function gameInit()
     {
         g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
         g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
+        g_spiderOut[i] = false;
     }
 }
 
@@ -238,6 +245,38 @@ function gameUpdate()
     g_lightTargetY = lerp(LIGHT_SMOOTH, g_lightTargetY, g_kittyY);
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
     g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
+
+    // fleeing spiders
+    var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
+    var sqAreaRadius = SPIDER_AREA_RADIUS*SPIDER_AREA_RADIUS;
+    for (var i=0; i<SPIDER_COUNT; ++i)
+    {
+        if (!g_spiderOut[i])
+        {
+            // flee kitty
+            var dx = g_spiderX[i] - g_kittyX;
+            var dy = g_spiderY[i] - g_kittyY;
+            var sqDist = dx*dx + dy*dy;
+            if (sqDist < sqFleeDist)
+            {
+                log("spider " + i + " fleeing");
+                var t = 1.0 - (sqDist / sqFleeDist);
+                var fleeVecX = t * dx * SPIDER_FLEE_FACTOR;
+                var fleeVecY = t * dy * SPIDER_FLEE_FACTOR;
+                g_spiderX[i] += fleeVecX;
+                g_spiderY[i] += fleeVecY;
+            }
+
+            // "die" when outside area
+            dx = g_spiderX[i] - CANVAS_CENTER_X;
+            dy = g_spiderY[i] - CANVAS_CENTER_Y;
+            sqDist = dx*dx + dy*dy;
+            if (sqDist > sqAreaRadius)
+            {
+                g_spiderOut[i] = true;
+            }
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------
@@ -259,20 +298,30 @@ function gameDraw()
     var darknessImgY = g_lightY - LIGHT_SIZE * 0.5;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
-        var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
-        var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
-        if (spiderImgX > darknessImgX &&
-            (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
-            spiderImgY > darknessImgY &&
-            (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
-        {            
-            g_context.drawImage(
-                g_spiderImg,
-                spiderImgX, spiderImgY,
-                SPIDER_SIZE, SPIDER_SIZE);
+        if (!g_spiderOut[i])
+        {
+            var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
+            var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
+            if (spiderImgX > darknessImgX &&
+                (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
+                spiderImgY > darknessImgY &&
+                (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
+            {            
+                g_context.drawImage(
+                    g_spiderImg,
+                    spiderImgX, spiderImgY,
+                    SPIDER_SIZE, SPIDER_SIZE);
+            }
         }
     }
-    
+
+    // draw spider area
+    g_context.beginPath();
+    g_context.arc(CANVAS_CENTER_X, CANVAS_CENTER_Y, SPIDER_AREA_RADIUS, 0, Math.PI*2, true);
+    g_context.strokeStyle = "black"; // line color
+    g_context.closePath();
+    g_context.stroke();
+
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
     var kittyImgY = g_kittyY - KITTY_SIZE * 0.5;
