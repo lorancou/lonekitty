@@ -22,13 +22,15 @@ const KITTY_ANIM_SPEED = 0.01;
 const LIGHT_MIN_SIZE = 128;
 const LIGHT_MAX_SIZE = 256;
 const SPIDER_SPEED = 0.5;
+const SPIDER_TURN_SPEED = 0.01;
 const SPIDER_SIZE = 32;
 const SPIDER_FRAME_COUNT = 4;
 const SPIDERDEATH_FRAME_COUNT = 4;
 const SPIDER_ANIM_SPEED = 0.05;
 const SPIDER_COUNT = 256;
 const SPIDER_FLEE_MARGIN = 20;
-const SPIDER_FLEE_FACTOR = 0.1;
+const SPIDER_FLEE_FACTOR = 5.0;
+const SPIDER_SAFE_MARGIN = 100;
 const AREA_RADIUS = 210;
 const EXIT_URL = "http://www.youtube.com/watch?v=QH2-TGUlwu4&autoplay=1";
 
@@ -218,14 +220,16 @@ function drawAnimated(img, imgX, imgY, width, height, cursor, frameCount)
     var frameWidth = img.width / frameCount;
     var sourceX = (frame % frameCount) * frameWidth;
     var sourceY = 0;
+    // log("sourceX= " + sourceX + " sourceY= " + sourceY);
+    // log("frameWidth= " + frameWidth);
+    // log("imgX= " + imgX + " imgY= " + imgY);
+    // log("width= " + width + " height= " + height);
     g_context.drawImage(
         img,
         sourceX, sourceY,
         frameWidth, img.height,
         imgX, imgY,
         width, height);
-    //log("sourceX= " + sourceX + " sourceY= " + sourceY);
-    //log("width= " + width + " height= " + height);
 }
 
 //-------------------------------------------------------------------------------
@@ -239,6 +243,8 @@ var g_areaImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
 var g_spiderAngle = new Array(SPIDER_COUNT);
+var g_spiderTargetAngle = new Array(SPIDER_COUNT);
+var g_spiderTurnCursor = new Array(SPIDER_COUNT);
 var g_spiderAnimCursor = new Array(SPIDER_COUNT);
 var g_spiderdeathAnimCursor = new Array(SPIDER_COUNT);
 var g_spiderOut = new Array(SPIDER_COUNT);
@@ -280,6 +286,8 @@ function gameInit()
         g_spiderY[i] = CANVAS_CENTER_Y + distFromCenter * Math.sin(angle);
 
         g_spiderAngle[i] = Math.random() * Math.PI * 2;
+        g_spiderTargetAngle[i] = Math.random() * Math.PI * 2;
+        g_spiderTurnCursor[i] = Math.random();
 
         g_spiderAnimCursor[i] = Math.random();
         g_spiderdeathAnimCursor[i] = 0.0;
@@ -351,26 +359,60 @@ function gameUpdate()
     {
         if (!g_spiderOut[i])
         {
-            // flee kitty
+            var fleeing = false;
+
+            // vector: kitty -> spider
             dx = g_spiderX[i] - g_kittyX;
             dy = g_spiderY[i] - g_kittyY;
             sqDist = dx*dx + dy*dy;
             if (sqDist < sqFleeDist)
             {
                 //log("spider " + i + " fleeing");
-                t = 1.0 - (sqDist / sqFleeDist);
-                g_spiderX[i] += t * dx * SPIDER_FLEE_FACTOR;
-                g_spiderY[i] += t * dy * SPIDER_FLEE_FACTOR;
+                // t = 1.0 - (sqDist / sqFleeDist);
+                // g_spiderX[i] += t * dx * SPIDER_FLEE_FACTOR;
+                // g_spiderY[i] += t * dy * SPIDER_FLEE_FACTOR;
+
+                // flee kitty
+                var newAngle = Math.atan2(dy, dx);
+                g_spiderAngle[i] = newAngle;
+                g_spiderTargetAngle[i] = newAngle;
+                fleeing = true;
             }
             else
             {
-                // always move a bit if 
-                dx = Math.cos(g_spiderAngle[i]) * SPIDER_SPEED;
-                dy = Math.sin(g_spiderAngle[i]) * SPIDER_SPEED;
-                //g_spiderX[i] += dx;
-                //g_spiderY[i] += dy;
+                // vector: canvas center -> spider
+                dx = g_spiderX[i] - CANVAS_CENTER_X;
+                dy = g_spiderY[i] - CANVAS_CENTER_Y;
+                sqDist = dx*dx + dy*dy;
+                if (sqDist < (sqAreaRadius - SPIDER_SAFE_MARGIN*SPIDER_SAFE_MARGIN))
+                {
+                    // if in safe zone, move randomly 
+                    g_spiderTurnCursor[i] += SPIDER_TURN_SPEED;
+                    while (g_spiderTurnCursor[i] > 1.0)
+                    {
+                        g_spiderAngle[i] = Math.random() * Math.PI * 2;
+                        g_spiderTargetAngle[i] = Math.random() * Math.PI * 2;
+                        g_spiderTurnCursor[i] -= 1.0;
+                    }
+                }
+                else
+                {
+                    // otherwise move towards center
+                    var newAngle = Math.atan2(-dy, -dx);
+                    g_spiderAngle[i] = newAngle;
+                    g_spiderTargetAngle[i] = newAngle;
+                }
             }
 
+            // move in chosen direction
+            var angle = lerp(g_spiderTurnCursor[i], g_spiderAngle[i], g_spiderTargetAngle[i]);
+            var speed = SPIDER_SPEED;
+            if (fleeing)
+            {
+                speed *= SPIDER_FLEE_FACTOR;
+            }
+            g_spiderX[i] += Math.cos(angle) * speed;
+            g_spiderY[i] += Math.sin(angle) * speed;
 
             // update animation cursor
             g_spiderAnimCursor[i] += SPIDER_ANIM_SPEED;
@@ -411,6 +453,10 @@ function gameUpdate()
 // game draw
 function gameDraw()
 {
+    // clear
+    // g_context.fillStyle = "white";
+    // g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
     // draw area / clear canvas (partly)
     // NB: this works as long as the area image fits the canvas
     var darknessImgX = g_lightX - g_lightSize * 0.5;
