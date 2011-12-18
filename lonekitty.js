@@ -16,10 +16,13 @@ const CANVAS_HEIGHT = 512;
 const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 2.0;
-const KITTY_SIZE = 40;
+const KITTY_SIZE = 64;
 const LIGHT_SIZE = 256;
 const SPIDER_SPEED = 0.5;
-const SPIDER_SIZE = 20;
+const SPIDER_SIZE = 32;
+const SPIDER_FRAME_COUNT = 4;
+const SPIDERDEATH_FRAME_COUNT = 4;
+const SPIDER_ANIM_SPEED = 0.05;
 const SPIDER_COUNT = 256;
 const SPIDER_FLEE_DIST = 90;
 const SPIDER_FLEE_FACTOR = 0.05;
@@ -205,15 +208,36 @@ function clamp(v, min, max)
 }
 
 //-------------------------------------------------------------------------------
+// animation
+function drawAnimated(img, imgX, imgY, width, height, cursor, frameCount)
+{
+    var frame = Math.floor(cursor * frameCount);
+    var frameWidth = img.width / frameCount;
+    var sourceX = (frame % frameCount) * frameWidth;
+    var sourceY = 0;
+    g_context.drawImage(
+        img,
+        sourceX, sourceY,
+        frameWidth, img.height,
+        imgX, imgY,
+        width, height);
+    //log("sourceX= " + sourceX + " sourceY= " + sourceY);
+    //log("width= " + width + " height= " + height);
+}
+
+//-------------------------------------------------------------------------------
 // game init
 var g_kittyImg;
 var g_kittyfImg;
 var g_darknessImg;
 var g_spiderImg;
+var g_spiderdeathImg;
 var g_areaImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
 var g_spiderAngle = new Array(SPIDER_COUNT);
+var g_spiderAnimCursor = new Array(SPIDER_COUNT);
+var g_spiderdeathAnimCursor = new Array(SPIDER_COUNT);
 var g_spiderOut = new Array(SPIDER_COUNT);
 function gameInit()
 {
@@ -233,6 +257,10 @@ function gameInit()
     g_spiderImg.src = "spider.png";
     g_spiderImg.onload = function() {};
 
+    g_spiderdeathImg = new Image();
+    g_spiderdeathImg.src = "spiderdeath.png";
+    g_spiderdeathImg.onload = function() {};
+
     g_areaImg = new Image();
     g_areaImg.src = "area.png";
     g_areaImg.onload = function() {};
@@ -248,6 +276,9 @@ function gameInit()
         g_spiderY[i] = CANVAS_CENTER_Y + distFromCenter * Math.sin(angle);
 
         g_spiderAngle[i] = Math.random() * Math.PI * 2;
+
+        g_spiderAnimCursor[i] = Math.random();
+        g_spiderdeathAnimCursor[i] = 0.0;
 
         g_spiderOut[i] = false;
     }
@@ -298,7 +329,7 @@ function gameUpdate()
 
     // spiders
     var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
-    var allOut = true;
+    var allDead = true;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
         if (!g_spiderOut[i])
@@ -321,21 +352,34 @@ function gameUpdate()
             g_spiderX[i] += dx;
             g_spiderY[i] += dy;
 
+            // update animation cursor
+            g_spiderAnimCursor[i] += SPIDER_ANIM_SPEED;
+            while (g_spiderAnimCursor[i] > 1.0)
+            {
+                g_spiderAnimCursor[i] -= 1.0;
+            }
+
             // "die" when outside area
             dx = g_spiderX[i] - CANVAS_CENTER_X;
             dy = g_spiderY[i] - CANVAS_CENTER_Y;
             sqDist = dx*dx + dy*dy;
             if (sqDist > sqAreaRadius)
             {
-                log("spider " + i + " out");
+                //log("spider " + i + " out");
                 g_spiderOut[i] = true;
             }
-            allOut = false;
+            allDead = false;
+        }
+        else if (g_spiderdeathAnimCursor[i] < 1.0)
+        {
+            // update death anim cursor
+            g_spiderdeathAnimCursor[i] += SPIDER_ANIM_SPEED;
+            allDead = false;
         }
     }
 
-    // end condition: all spiders out
-    if (allOut)
+    // win condition: all spiders out and dead
+    if (allDead)
     {
         exit();
     }
@@ -370,19 +414,30 @@ function gameDraw()
     var darknessImgY = g_lightY - LIGHT_SIZE * 0.5;
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
-        if (!g_spiderOut[i])
+        var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
+        var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
+        if (spiderImgX > darknessImgX &&
+            (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
+            spiderImgY > darknessImgY &&
+            (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
         {
-            var spiderImgX = g_spiderX[i] - SPIDER_SIZE * 0.5;
-            var spiderImgY = g_spiderY[i] - SPIDER_SIZE * 0.5;
-            if (spiderImgX > darknessImgX &&
-                (spiderImgX+SPIDER_SIZE) < (darknessImgX+LIGHT_SIZE) &&
-                spiderImgY > darknessImgY &&
-                (spiderImgY+SPIDER_SIZE) < (darknessImgY+LIGHT_SIZE))
-            {            
-                g_context.drawImage(
+            if (!g_spiderOut[i])
+            {
+                drawAnimated(
                     g_spiderImg,
                     spiderImgX, spiderImgY,
-                    SPIDER_SIZE, SPIDER_SIZE);
+                    SPIDER_SIZE, SPIDER_SIZE,
+                    g_spiderAnimCursor[i], SPIDER_FRAME_COUNT
+                );
+            }
+            else if (g_spiderdeathAnimCursor[i] < 1.0)
+            {
+                drawAnimated(
+                  g_spiderdeathImg,
+                    spiderImgX, spiderImgY,
+                    SPIDER_SIZE, SPIDER_SIZE,
+                    g_spiderdeathAnimCursor[i], SPIDERDEATH_FRAME_COUNT
+                );
             }
         }
     }
