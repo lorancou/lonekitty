@@ -18,6 +18,7 @@ const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 2.0;
 const KITTY_SIZE = 40;
 const LIGHT_SIZE = 256;
+const SPIDER_SPEED = 0.5;
 const SPIDER_SIZE = 20;
 const SPIDER_COUNT = 256;
 const SPIDER_FLEE_DIST = 90;
@@ -212,6 +213,7 @@ var g_spiderImg;
 var g_areaImg;
 var g_spiderX = new Array(SPIDER_COUNT);
 var g_spiderY = new Array(SPIDER_COUNT);
+var g_spiderAngle = new Array(SPIDER_COUNT);
 var g_spiderOut = new Array(SPIDER_COUNT);
 function gameInit()
 {
@@ -237,15 +239,15 @@ function gameInit()
 
     for (var i=0; i<SPIDER_COUNT; ++i)
     {
-        // g_spiderX[i] = Math.floor(Math.random() * CANVAS_WIDTH);
-        // g_spiderY[i] = Math.floor(Math.random() * CANVAS_HEIGHT);
-
         var distFromCenter = SPIDER_FLEE_DIST + Math.random() * (AREA_RADIUS - SPIDER_FLEE_DIST);
         var angle = Math.random() * Math.PI * 2;
-        //log("spider " + i + " d=" + distFromCenter + " a=" + angle);
+
+        //log("spider spawn " + i + " d=" + distFromCenter + " a=" + angle);
 
         g_spiderX[i] = CANVAS_CENTER_X + distFromCenter * Math.cos(angle);
         g_spiderY[i] = CANVAS_CENTER_Y + distFromCenter * Math.sin(angle);
+
+        g_spiderAngle[i] = Math.random() * Math.PI * 2;
 
         g_spiderOut[i] = false;
     }
@@ -294,7 +296,7 @@ function gameUpdate()
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
     g_lightY = lerp(LIGHT_SMOOTH2, g_lightY, g_lightTargetY);
 
-    // fleeing spiders
+    // spiders
     var sqFleeDist = SPIDER_FLEE_DIST*SPIDER_FLEE_DIST;
     var allOut = true;
     for (var i=0; i<SPIDER_COUNT; ++i)
@@ -312,6 +314,12 @@ function gameUpdate()
                 g_spiderX[i] += t * dx * SPIDER_FLEE_FACTOR;
                 g_spiderY[i] += t * dy * SPIDER_FLEE_FACTOR;
             }
+
+            // always move a bit
+            dx = Math.cos(g_spiderAngle[i]) * SPIDER_SPEED;
+            dy = Math.sin(g_spiderAngle[i]) * SPIDER_SPEED;
+            g_spiderX[i] += dx;
+            g_spiderY[i] += dy;
 
             // "die" when outside area
             dx = g_spiderX[i] - CANVAS_CENTER_X;
