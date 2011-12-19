@@ -17,8 +17,8 @@ const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
 const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
 const KITTY_SPEED = 2.0;
 const KITTY_SIZE = 64;
-const KITTY_FRAME_COUNT = 4;
-const KITTY_ANIM_SPEED = 0.01;
+const KITTY_FRAME_COUNT = 2;
+const KITTY_ANIM_SPEED = 0.1;
 const LIGHT_MIN_SIZE = 128;
 const LIGHT_MAX_SIZE = 350;
 const SPIDER_SPEED = 0.5;
@@ -240,6 +240,8 @@ function drawAnimated(img, imgX, imgY, width, height, cursor, frameCount)
 // game init
 var g_kittyImg;
 var g_kittyfImg;
+var g_kittysleepImg;
+var g_kittysleepfImg;
 var g_darknessImg;
 var g_spiderImg;
 var g_spiderdeathImg;
@@ -268,6 +270,14 @@ function gameInit()
     g_kittyfImg = new Image();
     g_kittyfImg.src = "kittyf.png";
     g_kittyfImg.onload = function() {};
+
+    g_kittysleepImg = new Image();
+    g_kittysleepImg.src = "kittysleep.png";
+    g_kittysleepImg.onload = function() { /* game should wait for this to start, but meh. */ };
+
+    g_kittysleepfImg = new Image();
+    g_kittysleepfImg.src = "kittysleepf.png";
+    g_kittysleepfImg.onload = function() {};
 
     g_darknessImg = new Image();
     g_darknessImg.src = "darkness.png";
@@ -351,6 +361,7 @@ function gameInit()
 var g_kittyX = CANVAS_WIDTH * 0.5;
 var g_kittyY = CANVAS_HEIGHT * 0.5;
 var g_kittyFlip = false;
+var g_kittyMoving = false;
 var g_kittyAnimCursor = 0.0;
 var g_lightX = CANVAS_WIDTH * 0.5;
 var g_lightY = CANVAS_HEIGHT * 0.5;
@@ -361,30 +372,30 @@ var g_deadSpiderCount = 0;
 function gameUpdate()
 {
     // move kitty
-    var isMoving = false;
+    g_kittyMoving = false;
     if (g_leftPressed)
     {
         g_kittyX -= KITTY_SPEED;
-        isMoving = true;
+        g_kittyMoving = true;
     }
     if (g_upPressed)
     {
         g_kittyY -= KITTY_SPEED;
-        isMoving = true;
+        g_kittyMoving = true;
     }
     if (g_rightPressed)
     {
         g_kittyX += KITTY_SPEED;
-        isMoving = true;
+        g_kittyMoving = true;
     }
     if (g_downPressed)
     {
         g_kittyY += KITTY_SPEED;
-        isMoving = true;
+        g_kittyMoving = true;
     }
 
     // meow and footsteps once in a while
-    if (isMoving && 0==(g_tick%80))
+    if (g_kittyMoving && 0==(g_tick%80))
     {
         var index = Math.floor(Math.random() * (MEOW_SFX_COUNT+5));
         if (index < MEOW_SFX_COUNT)
@@ -609,12 +620,40 @@ function gameDraw()
     // draw kitty
     var kittyImgX = g_kittyX - KITTY_SIZE * 0.5;
     var kittyImgY = g_kittyY - KITTY_SIZE * 0.5;
+    var kittyImg;
+    var kittyFrameCount;
+    if (g_kittyMoving)
+    {
+        if (g_kittyFlip)
+        {
+            kittyImg = g_kittyfImg;
+            kittyFrameCount = KITTY_FRAME_COUNT;
+        }
+        else
+        {
+            kittyImg = g_kittyImg;
+            kittyFrameCount = KITTY_FRAME_COUNT;
+        }
+    }
+    else
+    {
+        if (g_kittyFlip)
+        {
+            kittyImg = g_kittysleepfImg;
+            kittyFrameCount = 1;
+        }
+        else
+        {
+            kittyImg = g_kittysleepImg;
+            kittyFrameCount = 1;
+        }
+    }
     drawAnimated(
-        g_kittyFlip ? g_kittyfImg : g_kittyImg,
+        kittyImg,
         kittyImgX, kittyImgY,
         KITTY_SIZE, KITTY_SIZE,
         g_kittyAnimCursor,
-        KITTY_FRAME_COUNT
+        kittyFrameCount
     );
 
     // darkness halo
