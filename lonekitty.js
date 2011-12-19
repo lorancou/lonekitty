@@ -452,6 +452,13 @@ function gameUpdate()
             progress,
             LIGHT_MIN_SIZE, LIGHT_MAX_SIZE
         );
+
+        // glow
+        const GLOW_AMP = 15.0;
+        var t = g_tick * 0.04 % (Math.PI * 2);
+        var glow = Math.cos(t) * GLOW_AMP;
+        log ("t=" + t + " glow=" + glow);
+        g_lightSize += glow;
     }
     else
     {
