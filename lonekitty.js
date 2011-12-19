@@ -384,7 +384,7 @@ function gameUpdate()
     }
 
     // meow and footsteps once in a while
-    if (isMoving && 0==(g_tick%60))
+    if (isMoving && 0==(g_tick%80))
     {
         var index = Math.floor(Math.random() * (MEOW_SFX_COUNT+5));
         if (index < MEOW_SFX_COUNT)
@@ -520,7 +520,7 @@ function gameUpdate()
                 g_spiderOut[i] = true;
 
                 // play "pouitch" sfx
-                if ((g_tick - g_lastPouitchTick) > 2)
+                if ((g_tick - g_lastPouitchTick) > 15)
                 {
                     var index = Math.floor(Math.random() * POUITCH_SFX_COUNT);
                     log(g_pouitchSfx[index].src);
