@@ -22,12 +22,20 @@ You should have received a copy of the GNU General Public License along with thi
 program (LICENSE file). If not, see <http://www.gnu.org/licenses/>.
 
 ---------------------------------------------------------------------------------
-  NOTES
+  WHAT WOULD HAVE HELPED
 ---------------------------------------------------------------------------------
 
-What would have helped:
 - vector math lib
 - collisions lib
-- sound lib, sound support with th Audio class is *POOR*
+- sound lib, browser support for the Audio class is *POOR*
   => SoundManager2 looks allright, but could get it to work (snif)
 - anim lib
+
+---------------------------------------------------------------------------------
+  KNOWN ISSUES
+---------------------------------------------------------------------------------
+
+- SFXs won't play with my version of Iceweasel
+- SFX sometimes won't play, or sometimes scratch with my version of Chromium, it
+  happens that they stop the music, too
+- Zooming with Chromium crashes the game :-/ OK with Iceweasel though.

@@ -405,12 +405,12 @@ function gameUpdate()
         var index = Math.floor(Math.random() * (MEOW_SFX_COUNT+5));
         if (index < MEOW_SFX_COUNT)
         {
-            log(g_meowSfx[index].src);
+            //log(g_meowSfx[index].src);
             g_meowSfx[index].play();
         }
         else
         {
-            log(g_footstepSfx.src);
+            //log(g_footstepSfx.src);
             g_footstepSfx.play();
         }
     }
@@ -457,7 +457,7 @@ function gameUpdate()
         const GLOW_AMP = 15.0;
         var t = g_tick * 0.04 % (Math.PI * 2);
         var glow = Math.cos(t) * GLOW_AMP;
-        log ("t=" + t + " glow=" + glow);
+        //log ("t=" + t + " glow=" + glow);
         g_lightSize += glow;
     }
     else
@@ -556,7 +556,7 @@ function gameUpdate()
                 if ((g_tick - g_lastPouitchTick) > 15)
                 {
                     var index = Math.floor(Math.random() * POUITCH_SFX_COUNT);
-                    log(g_pouitchSfx[index].src);
+                    //log(g_pouitchSfx[index].src);
                     g_pouitchSfx[index].play();
 
                     g_lastPouitchTick = g_tick;
@@ -583,7 +583,7 @@ function gameUpdate()
     // fade to black
     if (g_fadeStarted)
     {
-        log(g_fadeTick);
+        //log(g_fadeTick);
         if ((g_fadeTick++) > FADE_TICK_COUNT)
         {
             exit();
