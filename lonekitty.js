@@ -156,7 +156,6 @@ function update()
 function exit()
 {
     log("exit");
-
     window.location = EXIT_URL;
     g_exited = true;
 }
@@ -369,29 +368,35 @@ var g_lightTargetX = CANVAS_WIDTH * 0.5;
 var g_lightTargetY = CANVAS_HEIGHT * 0.5;
 var g_lightSize = LIGHT_MIN_SIZE;
 var g_deadSpiderCount = 0;
+var g_fadeStarted = false;
+var g_fadeTick = 0;
+const FADE_TICK_COUNT = 100;
 function gameUpdate()
 {
     // move kitty
     g_kittyMoving = false;
-    if (g_leftPressed)
+    if (!g_fadeStarted)
     {
-        g_kittyX -= KITTY_SPEED;
-        g_kittyMoving = true;
-    }
-    if (g_upPressed)
-    {
-        g_kittyY -= KITTY_SPEED;
-        g_kittyMoving = true;
-    }
-    if (g_rightPressed)
-    {
-        g_kittyX += KITTY_SPEED;
-        g_kittyMoving = true;
-    }
-    if (g_downPressed)
-    {
-        g_kittyY += KITTY_SPEED;
-        g_kittyMoving = true;
+        if (g_leftPressed)
+        {
+            g_kittyX -= KITTY_SPEED;
+            g_kittyMoving = true;
+        }
+        if (g_upPressed)
+        {
+            g_kittyY -= KITTY_SPEED;
+            g_kittyMoving = true;
+        }
+        if (g_rightPressed)
+        {
+            g_kittyX += KITTY_SPEED;
+            g_kittyMoving = true;
+        }
+        if (g_downPressed)
+        {
+            g_kittyY += KITTY_SPEED;
+            g_kittyMoving = true;
+        }
     }
 
     // meow and footsteps once in a while
@@ -441,10 +446,20 @@ function gameUpdate()
 
     // update light size
     var progress = g_deadSpiderCount / SPIDER_COUNT;
-    g_lightSize = lerp(
-        progress,
-        LIGHT_MIN_SIZE, LIGHT_MAX_SIZE
-    );
+    if (!g_fadeStarted)
+    {
+        g_lightSize = lerp(
+            progress,
+            LIGHT_MIN_SIZE, LIGHT_MAX_SIZE
+        );
+    }
+    else
+    {
+        g_lightSize = lerp(
+            g_fadeTick / FADE_TICK_COUNT,
+            LIGHT_MAX_SIZE, LIGHT_MIN_SIZE
+        );
+    }
 
     // spiders
     var fleeDist = END_FLEE_DIST;
@@ -553,9 +568,19 @@ function gameUpdate()
     }
 
     // win condition: all spiders out and dead
-    if (g_deadSpiderCount == SPIDER_COUNT)
+    if (g_deadSpiderCount == SPIDER_COUNT && !g_fadeStarted)
     {
-        exit();
+        g_fadeStarted = true;
+    }
+
+    // fade to black
+    if (g_fadeStarted)
+    {
+        log(g_fadeTick);
+        if ((g_fadeTick++) > FADE_TICK_COUNT)
+        {
+            exit();
+        }
     }
 }
 
@@ -684,4 +709,12 @@ function gameDraw()
     // debug draw
     // g_context.strokeStyle = "red";
     // g_context.strokeRect(clearX+4, clearY+4, clearSize-8, clearSize-8);
+
+    if (g_fadeStarted)
+    {
+        var alpha = g_fadeTick / FADE_TICK_COUNT;
+        g_context.fillStyle = "rgba(0,0,0," + alpha +")";
+        //log(g_context.fillStyle);
+        g_context.fillRect(clearX, clearY, clearSize, clearSize); // full clear rect
+    }
 }
