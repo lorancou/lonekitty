@@ -53,3 +53,4 @@ Things I had to do for IE9 support:
   Microsoft's official compatibility view list, c.f.:
   http://msdn.microsoft.com/en-us/library/gg622935(v=vs.85).aspx
 - const not supported, using var instead
+- Check window.console existence to prevent crash with F12 tools closed

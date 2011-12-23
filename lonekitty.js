@@ -42,11 +42,16 @@ var END_FLEE_DIST_GROW = 0.5;
 // log
 function log(msg)
 {
+    //alert(msg);
+
     var begin = "<ul><li>";
     var middle = "</li><li>";
     var end = "</li></ul>";
 
-    console.log(msg);
+    if (window.console)
+    {
+        window.console.log(msg);
+    }
 
     var output_div = document.getElementById("output");
     if ( output_div )
