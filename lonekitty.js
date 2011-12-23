@@ -11,32 +11,32 @@
 
 //-------------------------------------------------------------------------------
 // main constants
-const CANVAS_WIDTH = 512;
-const CANVAS_HEIGHT = 512;
-const CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
-const CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
-const KITTY_SPEED = 2.0;
-const KITTY_SIZE = 64;
-const KITTY_FRAME_COUNT = 2;
-const KITTY_ANIM_SPEED = 0.1;
-const LIGHT_MIN_SIZE = 128;
-const LIGHT_MAX_SIZE = 350;
-const SPIDER_SPEED = 0.5;
-const SPIDER_TURN_SPEED = 0.01;
-const SPIDER_SIZE = 32;
-const SPIDER_FRAME_COUNT = 16;
-const SPIDER_ANIM_SPEED = 0.01;
-const SPIDERDEATH_FRAME_COUNT = 4;
-const SPIDERDEATH_ANIM_SPEED = 0.05;
-const SPIDER_COUNT = 128;
-const SPIDER_FLEE_MARGIN = 20;
-const SPIDER_FLEE_FACTOR = 5.0;
-const SPIDER_SAFE_MARGIN = 100;
-const AREA_RADIUS = 210;
-const EXIT_URL = "http://www.youtube.com/v/QH2-TGUlwu4?autoplay=1";
-const START_FLEE_DIST = 60;
-const END_FLEE_DIST = 80;
-const END_FLEE_DIST_GROW = 0.5;
+var CANVAS_WIDTH = 512;
+var CANVAS_HEIGHT = 512;
+var CANVAS_CENTER_X = CANVAS_WIDTH * 0.5;
+var CANVAS_CENTER_Y = CANVAS_HEIGHT * 0.5;
+var KITTY_SPEED = 2.0;
+var KITTY_SIZE = 64;
+var KITTY_FRAME_COUNT = 2;
+var KITTY_ANIM_SPEED = 0.1;
+var LIGHT_MIN_SIZE = 128;
+var LIGHT_MAX_SIZE = 350;
+var SPIDER_SPEED = 0.5;
+var SPIDER_TURN_SPEED = 0.01;
+var SPIDER_SIZE = 32;
+var SPIDER_FRAME_COUNT = 16;
+var SPIDER_ANIM_SPEED = 0.01;
+var SPIDERDEATH_FRAME_COUNT = 4;
+var SPIDERDEATH_ANIM_SPEED = 0.05;
+var SPIDER_COUNT = 128;
+var SPIDER_FLEE_MARGIN = 20;
+var SPIDER_FLEE_FACTOR = 5.0;
+var SPIDER_SAFE_MARGIN = 100;
+var AREA_RADIUS = 210;
+var EXIT_URL = "http://www.youtube.com/v/QH2-TGUlwu4?autoplay=1";
+var START_FLEE_DIST = 60;
+var END_FLEE_DIST = 80;
+var END_FLEE_DIST_GROW = 0.5;
 
 //-------------------------------------------------------------------------------
 // log
@@ -57,7 +57,7 @@ function log(msg)
         if (lines.length > 0)
         {
             lineList = lines.substring(begin.length, lines.length - end.length).split(middle);
-            const MAX_LOG_LINES = 20;
+            var MAX_LOG_LINES = 20;
             while (lineList.length >= MAX_LOG_LINES)
             {
                 lineList.shift();
@@ -145,8 +145,8 @@ function update()
     g_tick++;
     if (!g_exited)
     {
-        const AIM_FPS = 60.0;
-        const MIN_DT = 1000.0 / AIM_FPS;
+        var AIM_FPS = 60.0;
+        var MIN_DT = 1000.0 / AIM_FPS;
         setTimeout("update()", MIN_DT);
     }
 }
@@ -245,9 +245,9 @@ var g_darknessImg;
 var g_spiderImg;
 var g_spiderdeathImg;
 var g_areaImg;
-const MEOW_SFX_COUNT = 1;
+var MEOW_SFX_COUNT = 1;
 var g_meowSfx = new Array(MEOW_SFX_COUNT);
-const POUITCH_SFX_COUNT = 3;
+var POUITCH_SFX_COUNT = 3;
 var g_pouitchSfx = new Array(MEOW_SFX_COUNT);
 var g_lastPouitchTick = 0;
 var g_footstepSfx;
@@ -370,7 +370,7 @@ var g_lightSize = LIGHT_MIN_SIZE;
 var g_deadSpiderCount = 0;
 var g_fadeStarted = false;
 var g_fadeTick = 0;
-const FADE_TICK_COUNT = 100;
+var FADE_TICK_COUNT = 100;
 function gameUpdate()
 {
     // move kitty
@@ -437,8 +437,8 @@ function gameUpdate()
     g_kittyAnimCursor += KITTY_ANIM_SPEED;
 
     // move light with a bit of smoothing
-    const LIGHT_SMOOTH = 0.3;
-    const LIGHT_SMOOTH2 = 0.3;
+    var LIGHT_SMOOTH = 0.3;
+    var LIGHT_SMOOTH2 = 0.3;
     g_lightTargetX = lerp(LIGHT_SMOOTH, g_lightTargetX, g_kittyX);
     g_lightTargetY = lerp(LIGHT_SMOOTH, g_lightTargetY, g_kittyY);
     g_lightX = lerp(LIGHT_SMOOTH2, g_lightX, g_lightTargetX);
@@ -454,7 +454,7 @@ function gameUpdate()
         );
 
         // glow
-        const GLOW_AMP = 15.0;
+        var GLOW_AMP = 15.0;
         var t = g_tick * 0.04 % (Math.PI * 2);
         var glow = Math.cos(t) * GLOW_AMP;
         //log ("t=" + t + " glow=" + glow);
@@ -698,7 +698,7 @@ function gameDraw()
     var clearSize = g_lightSize + SPIDER_SIZE * 2;
     var clearX = g_lightX - clearSize * 0.5;
     var clearY = g_lightY - clearSize * 0.5;
-    const MARGIN = 2;
+    var MARGIN = 2;
     var xleft = clearX - MARGIN;
     var xright = clearX + g_lightSize + SPIDER_SIZE - MARGIN;
     var xleft2 = clearX + SPIDER_SIZE - MARGIN;

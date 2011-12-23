@@ -35,8 +35,21 @@ program (LICENSE file). If not, see <http://www.gnu.org/licenses/>.
   KNOWN ISSUES
 ---------------------------------------------------------------------------------
 
+Testing under Debian "squeeze"
 - SFXs won't play with my version of Iceweasel
 - SFX sometimes won't play, or sometimes scratch with my version of Chromium, it
   happens that they stop the music, too
 - Zooming with Chromium crashes the game :-/ OK with Iceweasel though
 - Most of the time, reloading the page breaks all sounds with Chromium
+
+---------------------------------------------------------------------------------
+  IE9 SUPPORT
+---------------------------------------------------------------------------------
+
+Things I had to do for IE9 support:
+- favicon.ico at root
+- Doctype HTML declaration
+- meta X-UA-Compatible to disable compatibility mode as free.fr is listed in
+  Microsoft's official compatibility view list, c.f.:
+  http://msdn.microsoft.com/en-us/library/gg622935(v=vs.85).aspx
+- const not supported, using var instead
