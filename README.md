@@ -1,13 +1,13 @@
----------------------------------------------------------------------------------
-  Lone Kitty
-  Game entry for Ludum Dare #22, theme: Alone
----------------------------------------------------------------------------------
+Lone Kitty
+================================================================================
 
-Contact: lorancou@free.fr
+Game entry for Ludum Dare #22, theme: Alone
+--------------------------------------------------------------------------------
 
----------------------------------------------------------------------------------
-  LICENSE
----------------------------------------------------------------------------------
+Contact: <lorancou@free.fr>
+
+License
+--------------------------------------------------------------------------------
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -21,9 +21,8 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this
 program (LICENSE file). If not, see <http://www.gnu.org/licenses/>.
 
----------------------------------------------------------------------------------
-  WHAT WOULD HAVE HELPED
----------------------------------------------------------------------------------
+What would have helped
+--------------------------------------------------------------------------------
 
 - Vector math lib
 - Collisions lib
@@ -31,9 +30,8 @@ program (LICENSE file). If not, see <http://www.gnu.org/licenses/>.
   => SoundManager2 looks allright, but could get it to work (snif)
 - Anim lib
 
----------------------------------------------------------------------------------
-  KNOWN ISSUES
----------------------------------------------------------------------------------
+Known issues
+--------------------------------------------------------------------------------
 
 Testing under Debian "squeeze"
 - SFXs won't play with my version of Iceweasel
@@ -42,9 +40,8 @@ Testing under Debian "squeeze"
 - Zooming with Chromium crashes the game :-/ OK with Iceweasel though
 - Most of the time, reloading the page breaks all sounds with Chromium
 
----------------------------------------------------------------------------------
-  IE9 SUPPORT
----------------------------------------------------------------------------------
+IE9 Support
+--------------------------------------------------------------------------------
 
 Things I had to do for IE9 support:
 - favicon.ico at root
