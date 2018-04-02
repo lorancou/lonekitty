@@ -4,7 +4,7 @@ Lone Kitty
 Game entry for Ludum Dare #22, theme: Alone
 --------------------------------------------------------------------------------
 
-Contact: <lorancou@free.fr>
+Contact: <hello@lorancou.net>
 
 License
 --------------------------------------------------------------------------------
